@@ -1,13 +1,17 @@
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { Application, Request, Response } from "express";
+import { connDB } from "./config/db.js";
+import apiRoutes from "./routes/index.js";
 
-
-const app: Application = express();
 dotenv.config();
+const app: Application = express();
 const PORT: number = parseInt(process.env.PORT || "3000", 10);
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(cors({
   origin: "http://localhost:5173",
   credentials: true
@@ -17,6 +21,13 @@ app.get("/", (req: Request, res: Response) => {
   res.send("api test running...");
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port http://localhost:${PORT}`);
-});
+app.use("/api", apiRoutes);
+
+const startServer = async () => {
+  await connDB();
+  app.listen(PORT, () => {
+    console.log(`Server is running on port http://localhost:${PORT}`);
+  });
+}
+
+startServer();
