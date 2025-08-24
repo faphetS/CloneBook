@@ -40,14 +40,14 @@ export const login = async (
     const [rows] = await db.execute<RowDataPacket[]>(query, [email]);
 
     if (rows.length === 0) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res.status(401).json({ success: false, message: "Wrong Email" });
     }
 
     const user = rows[0];
     const valid = await bcrypt.compare(password, user.password);
 
     if (!valid) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res.status(401).json({ success: false, message: "Wrong Password" });
     }
 
     const accessToken = jwt.sign(
@@ -88,4 +88,5 @@ export const login = async (
     });
   }
 };
+
 
