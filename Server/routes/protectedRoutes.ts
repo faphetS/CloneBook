@@ -3,7 +3,7 @@ import { authenticateToken } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
-router.get("/", authenticateToken, (req, res) => {
+router.get("/sample", authenticateToken, (req, res) => {
   res.json({
     message: "This is protected data",
     user: req.user,
