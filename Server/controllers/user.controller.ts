@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { RowDataPacket } from "mysql2";
 import { getDB } from "../config/db.js";
+import { refreshTokenPayload } from "../types/jwtPayload.types.js";
 import { LoginBody, SignupBody } from "../types/user.types.js";
 
 
@@ -16,13 +17,18 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     const db = getDB();
     const [result] = await db.execute(query, value);
     res.json({ success: true, id: (result as any).insertId });
-  } catch (e: unknown) {
-    console.log(e);
-    const err = e instanceof Error ? e : new Error(String(e));
-    console.error(err);
-    res.status(500).json({
+  } catch (e: any) {
+    if (e.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({
+        success: false,
+        message: "Email already exists.",
+      });
+    }
+
+    console.error(e);
+    return res.status(500).json({
       success: false,
-      message: err.message
+      message: "Something went wrong. Please try again later.",
     });
   }
 
@@ -79,6 +85,60 @@ export const login = async (
     });
 
     res.json({ success: true, accessToken });
+  } catch (e: unknown) {
+    console.error(e);
+    const err = e instanceof Error ? e : new Error(String(e));
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  const token = req.cookies.refreshToken;
+  const query = "DELETE FROM refresh_tokens WHERE token = ?";
+  if (!token) return res.sendStatus(204);
+
+  try {
+    const db = getDB();
+    await db.execute(query, [token]);
+
+    res.clearCookie(
+      "refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+    res.sendStatus(204);
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
+  }
+};
+
+export const refreshToken = async (req: Request, res: Response) => {
+  const token = req.cookies.refreshToken;
+  const query = "SELECT * FROM refresh_tokens WHERE fk_u_id = ? AND token = ?";
+  if (!token) return res.sendStatus(401);
+
+  try {
+    const db = getDB();
+    const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET as string) as refreshTokenPayload;
+
+
+    const [rows] = await db.execute<RowDataPacket[]>(query, [decoded.userId, token]);
+
+    const tokenRecord = rows[0];
+    if (!tokenRecord) return res.sendStatus(403);
+
+    const accessToken = jwt.sign(
+      { userId: decoded.userId },
+      process.env.ACCESS_TOKEN_SECRET as string,
+      { expiresIn: "30m" }
+    );
+
+    res.json({ accessToken });
   } catch (e: unknown) {
     console.error(e);
     const err = e instanceof Error ? e : new Error(String(e));
