@@ -1,18 +1,48 @@
-import { Link } from "react-router-dom"
+import { AxiosError } from "axios";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../api/axios";
 
 const Signup = () => {
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    username: '',
+    email: '',
+    password: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      await api.post('/auth/signup', form);
+      navigate('/login');
+    } catch (err) {
+      const error = err as AxiosError<{ message?: string }>;
+      setError(error.response?.data?.message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700 text-white font-montserrat">
       <div className="bg-neutral-900 w-full max-w-[400px] rounded-xl shadow-lg p-8 space-y-6">
         <h1 className="text-4xl font-bold text-center mb-4">CloneBook</h1>
 
-        <form className="flex flex-col space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
           <div>
             <label className="block mb-1 text-sm font-medium">Username</label>
             <input
               name="username"
               type="text"
-              className="w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              disabled={loading}
+              className="w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
               required
             />
           </div>
@@ -22,7 +52,10 @@ const Signup = () => {
             <input
               name="email"
               type="email"
-              className="w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              disabled={loading}
+              className="w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
               required
             />
           </div>
@@ -32,16 +65,22 @@ const Signup = () => {
             <input
               name="password"
               type="password"
-              className="w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              disabled={loading}
+              className="w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
               required
             />
           </div>
 
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+
           <button
             type="submit"
+            disabled={loading}
             className="bg-blue-600 hover:bg-blue-700 rounded-lg py-2 font-semibold transition-colors"
           >
-            Sign Up
+            {loading ? 'Loading...' : 'Sign Up'}
           </button>
         </form>
 
