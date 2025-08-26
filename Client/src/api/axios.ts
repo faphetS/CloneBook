@@ -26,20 +26,17 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      const { refreshToken, setTokens, logout } = useAuthStore.getState();
+      const { setTokens, logout } = useAuthStore.getState();
 
-      if (!refreshToken) {
-        logout();
-        return Promise.reject(error);
-      }
 
       try {
-        const res = await axios.post("/api/auth/refresh", { refreshToken }, { withCredentials: true });
+        const res = await axios.post("/api/auth/refresh-token", {}, { withCredentials: true });
         const newAccessToken = res.data.accessToken;
 
-        setTokens(newAccessToken, refreshToken);
+        setTokens(newAccessToken);
 
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        console.log("Token refreshed");
         return api(originalRequest);
       } catch (err) {
         logout();
