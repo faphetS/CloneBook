@@ -1,39 +1,38 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuthStore } from '../store/useAuthStore';
 import type Tab from '../types/tab.type';
 
+// Move tabs outside the component to make them stable
+const tabs: Tab[] = [
+  { icon: <path d="M2.25 12L12 3l9.75 9H18v7.5a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75V12H2.25z" />, path: '/' },
+  { icon: <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />, path: '/profile' },
+  { icon: <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />, path: '/notifications' }
+];
+
 const Header: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { logout } = useAuthStore();
+
   const handleLogout = async () => {
     try {
       await api.post('/auth/logout');
-      useAuthStore.getState().logout();
+      logout();
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
     }
-  }
+  };
 
-  const [active, setActive] = useState<number>(0);
-  const tabs: Tab[] = [
-    {
-      icon: (
-        <path d="M2.25 12L12 3l9.75 9H18v7.5a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75V12H2.25z" />
-      )
-    },
-    {
-      icon: (
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-      )
-    },
-    {
-      icon: (
-        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-      )
-    }
-  ]
+  const [active, setActive] = useState(0);
+
+  // Update active tab whenever the location changes
+  useEffect(() => {
+    const index = tabs.findIndex(tab => tab.path === location.pathname);
+    if (index !== -1) setActive(index);
+  }, [location.pathname]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-neutral-900 px-4 flex justify-between items-center text-base">
@@ -41,14 +40,18 @@ const Header: React.FC = () => {
         <div className="min-w-[150px] font-bold cursor-pointer">CloneBook</div>
       </Link>
 
-      <div className="w-[360px] min-w-[150px] flex items-center">
+      <div className="w-[360px] min-w-[150px] flex items-center relative">
         {tabs.map((tab, i) => (
           <div
             key={i}
-            className={`group w-[120px] h-[64px] flex justify-center items-center cursor-pointer transition-colors duration-300 border-b-2 ${active === i ? 'border-[#1877F2]' : 'border-transparent'
-              }`}
-            onClick={() => setActive(i)}
+            className="group w-[120px] h-[64px] flex justify-center items-center cursor-pointer relative"
+            onClick={() => navigate(tab.path)}
           >
+            {/* Blue border animation */}
+            <div
+              className={`absolute bottom-0 left-0 w-full h-1 transition-all duration-300 ${active === i ? 'bg-[#1877F2]' : 'bg-transparent'
+                }`}
+            ></div>
             <div className="flex justify-center items-center group-hover:bg-neutral-700/50 w-[120px] h-12 rounded-lg">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -112,9 +115,8 @@ const Header: React.FC = () => {
 
         </div>
       </div>
+    </header>
+  );
+};
 
-    </header >
-  )
-}
-
-export default Header
+export default Header;
