@@ -7,8 +7,7 @@ export interface User {
 export interface AuthState {
   user: User | null;
   accessToken: string | null;
-  refreshToken: string | null;
-  login: (user: User, accessToken: string, refreshToken: string) => void;
+  login: (user: User, accessToken: string) => void;
   logout: () => void;
-  setTokens: (accessToken: string, refreshToken: string) => void;
+  setTokens: (accessToken: string) => void;
 }
