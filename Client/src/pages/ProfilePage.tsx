@@ -113,7 +113,7 @@ const ProfilePage = () => {
                 className="w-full bg-neutral-700/30 rounded-2xl px-3 py-3 text-white focus:outline-none focus:ring-1 focus:ring-[#1877F2] placeholder:text-neutral-400 overflow-y-hidden"
               />
             </div>
-            <button className="w-[590px] h-[100px] bg-neutral-800 flex items-center justify-center text-neutral-300 hover:bg-neutral-700 hover:text-white transition duration-100">
+            <button className="max-w-[590px] w-full h-[100px] bg-neutral-800 flex items-center justify-center text-neutral-300 hover:bg-neutral-700 hover:text-white transition duration-100">
               Add Photo
             </button>
             <div className="flex justify-around items-center border-t border-neutral-700 w-full py-2">
@@ -148,7 +148,7 @@ const ProfilePage = () => {
                 <p className="text-neutral-400 text-xs">1h</p>
               </div>
             </div>
-            <div className="w-[590px] h-[590px] bg-neutral-800 flex items-center justify-center">
+            <div className="max-w-[590px] w-full h-[590px] bg-neutral-800 flex items-center justify-center">
               asd
             </div>
             <div className="flex justify-around items-center border-t border-neutral-700 w-full py-2">
@@ -183,7 +183,7 @@ const ProfilePage = () => {
                 <p className="text-neutral-400 text-xs">1h</p>
               </div>
             </div>
-            <p className="text-white text-base whitespace-pre-wrap break-words w-[590px]">
+            <p className="text-white text-base whitespace-pre-wrap break-words max-w-[590px] w-full">
               Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus tenetur cum libero molestias quo ut deleniti odio dignissimos, vel ab nulla eligendi dolor eius voluptatibus omnis earum ducimus optio consequuntur.
             </p>
             <div className="flex justify-around items-center border-t border-neutral-700 w-full py-2">
