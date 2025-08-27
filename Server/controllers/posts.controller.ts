@@ -30,23 +30,63 @@ export const createPost = async (req: Request, res: Response) => {
 }
 
 export const getPosts = async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
   const query = `
-    SELECT 
-      posts.id, 
-      posts.content, 
-      posts.created_at, 
-      users.username 
-    FROM posts 
-    JOIN users ON posts.fk_u_id = users.id 
-    ORDER BY posts.created_at DESC
+     SELECT 
+    posts.id, 
+    posts.content, 
+    posts.created_at, 
+    users.username, 
+    COUNT(likes.id) AS likeCount,
+    CASE WHEN SUM(CASE WHEN likes.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked
+  FROM posts 
+  JOIN users ON posts.fk_u_id = users.id
+  LEFT JOIN likes ON posts.id = likes.fk_p_id
+  GROUP BY posts.id, posts.content, posts.created_at, users.username 
+  ORDER BY posts.created_at DESC
   `;
   try {
     const db = getDB();
-    const [rows] = await db.execute(query);
+    const [rows] = await db.execute(query, [req.user.userId]);
     res.json(rows);
-    console.log(rows);
   } catch (error: any) {
     console.log("Error fetching posts:", error.message || error);
     res.status(500).json({ error: "Failed to fetch posts" });
+  }
+}
+
+export const toggleLike = async (req: Request, res: Response) => {
+  try {
+    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+    let liked = false;
+    const userId: number = req.user.userId;
+    const postId: number = parseInt(req.params.postId);
+    const checkLikeQuery = "SELECT id FROM likes WHERE fk_p_id = ? AND fk_u_id = ?";
+    const unlikeQuery = "DELETE FROM likes WHERE fk_p_id = ? AND fk_u_id = ?";
+    const likeQuery = "INSERT INTO likes (fk_p_id, fk_u_id) VALUES (?, ?)";
+
+    const db = getDB();
+
+    const [existing]: any = await db.execute(
+      checkLikeQuery,
+      [postId, userId]
+    );
+    if (existing.length > 0) {
+      // unlike
+      await db.execute(unlikeQuery, [postId, userId]);
+      return res.json({ liked: false });
+    }
+
+    //like
+    await db.execute(likeQuery, [postId, userId]);
+    res.json({ liked: true });
+
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 }
