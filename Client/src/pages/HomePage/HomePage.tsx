@@ -95,7 +95,7 @@ const HomePage = () => {
             </div>
             <div className="flex justify-around items-center border-t border-neutral-700 w-full py-2">
               <button className="hover:bg-green-500  hover:text-white px-12 py-2 rounded-xl cursor-pointer text-neutral-300 font-semimbold transition duration-100">Photo</button>
-              <button className="hover:bg-[#1877F2] hover:text-white px-12 py-2 rounded-xl cursor-pointer text-neutral-300 font-semimbold transition duration-100">Post</button>
+              <button type="submit" className="hover:bg-[#1877F2] hover:text-white px-12 py-2 rounded-xl cursor-pointer text-neutral-300 font-semimbold transition duration-100">Post</button>
             </div>
           </form>
 
@@ -108,9 +108,12 @@ const HomePage = () => {
             posts.map((p) => (
               <Post
                 key={p.id}
+                id={p.id}
                 username={p.username}
                 content={p.content}
                 created_at={p.created_at}
+                likeCount={p.likeCount}
+                isLiked={p.isLiked === 1} // convert 1/0 -> true/false
               />
             ))
           )}
