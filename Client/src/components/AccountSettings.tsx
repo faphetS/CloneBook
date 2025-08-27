@@ -6,7 +6,7 @@ const AccountSettings = () => {
     <Menu as="nav" className="relative">
       {({ open }) => (
         <>
-          <MenuButton className="flex items-center px-4 h-12 hover:bg-neutral-700/50 cursor-pointer rounded-lg mt-1 w-full text-left focus:outline-none">
+          <MenuButton className="flex items-center px-4 h-12 hover:bg-neutral-700/50 cursor-pointer rounded-lg mt-1 w-full text-left focus:outline-none z-10">
             <motion.svg
               animate={{ rotate: open ? 90 : 0 }}
               transition={{ duration: 0.2 }}
@@ -29,7 +29,7 @@ const AccountSettings = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.15 }}
-                className="absolute left-0 min-w-full rounded-md bg-neutral-800 focus:outline-none z-10"
+                className="absolute left-0 min-w-full rounded-md bg-neutral-800 focus:outline-none -z-10"
               >
                 <MenuItem>
                   <div>
