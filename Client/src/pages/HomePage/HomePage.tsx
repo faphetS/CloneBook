@@ -1,9 +1,8 @@
-import { AxiosError } from "axios";
 import { useEffect, useRef, useState } from "react";
 import api from "../../api/axios";
 import Header from "../../components/Header";
 import Post from "../../components/Posts/Post";
-import type { PostType } from "../../types/post.types";
+import { usePostStore } from "../../store/postStore";
 import LeftNav from "./LeftNav";
 import RightNav from "./RightNav";
 
@@ -12,8 +11,11 @@ const HomePage = () => {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [content, setContent] = useState("");
-  const [posts, setPosts] = useState<PostType[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { posts, loading, fetchPosts, addPost } = usePostStore();
+
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
 
   const handleInput = () => {
     const el = textareaRef.current;
@@ -22,38 +24,21 @@ const HomePage = () => {
       el.style.height = el.scrollHeight + "px";
     }
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-
       const res = await api.post('/content/post', { content });
-      const newPost = res.data;
-      if (newPost && newPost.id) {
-        setPosts((prev) => [res.data, ...prev]);
-      }
+      addPost(res.data);
       setContent("");
-
     } catch (err) {
-      const error = err as AxiosError<{ message?: string }>;
-      console.log(error.response?.data?.message || "Post failed");
+      console.error("Post failed", err);
       setContent("");
     }
   };
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const res = await api.get('/content');
-        setPosts(res.data);
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPosts();
-  }, []);
+
 
   return (
     <>
@@ -93,9 +78,9 @@ const HomePage = () => {
                 className="w-full bg-neutral-700/30 rounded-2xl px-3 py-3 text-white focus:outline-none focus:ring-1 focus:ring-[#1877F2] placeholder:text-neutral-400 overflow-y-hidden"
               />
             </div>
-            <div className="flex justify-around items-center border-t border-neutral-700 w-full py-2">
-              <button className="hover:bg-green-500  hover:text-white px-12 py-2 rounded-xl cursor-pointer text-neutral-300 font-semimbold transition duration-100">Photo</button>
-              <button type="submit" className="hover:bg-[#1877F2] hover:text-white px-12 py-2 rounded-xl cursor-pointer text-neutral-300 font-semimbold transition duration-100">Post</button>
+            <div className="flex justify-around items-center border-t border-neutral-700 w-full p-1">
+              <button className="hover:bg-green-500 hover:text-white w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semimbold transition duration-100">Photo</button>
+              <button type="submit" className="hover:bg-[#1877F2] hover:text-white w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semimbold transition duration-100">Post</button>
             </div>
           </form>
 
@@ -105,17 +90,7 @@ const HomePage = () => {
               <div className="bg-transparent w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
             </div>
           ) : (
-            posts.map((p) => (
-              <Post
-                key={p.id}
-                id={p.id}
-                username={p.username}
-                content={p.content}
-                created_at={p.created_at}
-                likeCount={p.likeCount}
-                isLiked={p.isLiked === 1} // convert 1/0 -> true/false
-              />
-            ))
+            posts.map((p) => <Post key={p.id} {...p} />)
           )}
 
 
