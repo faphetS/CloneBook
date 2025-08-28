@@ -61,7 +61,6 @@ export const toggleLike = async (req: Request, res: Response) => {
   try {
     if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
-    let liked = false;
     const userId: number = req.user.userId;
     const postId: number = parseInt(req.params.postId);
     const checkLikeQuery = "SELECT id FROM likes WHERE fk_p_id = ? AND fk_u_id = ?";
@@ -88,5 +87,53 @@ export const toggleLike = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+}
+
+export const getComments = async (req: Request, res: Response) => {
+  const postId: number = parseInt(req.params.postId);
+  const query = `SELECT c.id, c.content, c.created_at, u.username 
+       FROM comments c
+       JOIN users u ON u.id = c.fk_u_id
+       WHERE c.fk_p_id = ?
+       ORDER BY c.created_at ASC`
+
+  try {
+    const db = getDB();
+    const [result]: any = await db.execute(query, [postId]);
+    res.json(result)
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch comments" });
+  }
+}
+
+export const postComment = async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const { content } = req.body;
+  const userId: number = req.user.userId;
+  const postId: number = parseInt(req.params.postId);
+  const insertQuery = `INSERT INTO comments (fk_p_id, fk_u_id, content) VALUES (?, ?, ?)`
+  const selectQuery = `
+      SELECT c.id, c.content, c.created_at, u.username 
+      FROM comments c
+      JOIN users u ON u.id = c.fk_u_id
+      WHERE c.id = ?
+    `;
+
+  if (!content) return res.status(400).json({ error: "comment required" });
+
+  try {
+    const db = getDB();
+    const [result]: any = await db.execute(insertQuery, [postId, userId, content]);
+    const [rows]: any = await db.execute(selectQuery, [result.insertId]);
+
+    res.status(201).json({ content: rows[0] });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to add comment" })
   }
 }
