@@ -1,24 +1,34 @@
-import { formatDistanceToNow } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../api/axios";
-import type { PostProps } from "../../types/post.types";
+import { useCommentStore, usePostStore } from "../../store/postStore";
+import type { PostType } from "../../types/post.types";
+import { formatShortTime } from "../../utils/time";
+import CommentInput from "./CommentInput";
+import PostComment from "./PostComment";
+
 
 //  post text only
-const Post = ({ id, username, content, created_at, likeCount: initialLikeCount, isLiked }: PostProps) => {
+const Post = ({ id, username, content, created_at, likeCount, isLiked }: PostType) => {
+  const { toggleLike } = usePostStore();
 
-  const [liked, setLiked] = useState(isLiked);
-  const [likeCount, setLikeCount] = useState(initialLikeCount);
-
+  const { comments, fetchComments, loading } = useCommentStore();
+  const [toggleComment, setToggleComment] = useState(false);
 
   const handleLike = async (): Promise<void> => {
+    toggleLike(id);
     try {
-      const res = await api.post(`/content/post/${id}`);
-      setLiked(Boolean(res.data.liked));
-      setLikeCount((prev) => (res.data.liked ? prev + 1 : prev - 1));
+      await api.post(`/content/post/${id}`);
     } catch (error) {
       console.error(error);
+      toggleLike(id);
     }
   };
+
+  useEffect(() => {
+    if (toggleComment) {
+      fetchComments(id);
+    }
+  }, [toggleComment, id, fetchComments]);
   return (
     <div className="bg-neutral-900 w-full flex flex-col items-center rounded-2xl px-3 pt-3 gap-3">
 
@@ -44,7 +54,7 @@ const Post = ({ id, username, content, created_at, likeCount: initialLikeCount, 
         <div className="flex flex-col">
           <p className="font-semibold">{username}</p>
           <p className="text-neutral-400 text-xs">
-            {formatDistanceToNow(new Date(created_at), { addSuffix: true })}
+            {formatShortTime(new Date(created_at))}
           </p>
         </div>
       </div>
@@ -56,14 +66,44 @@ const Post = ({ id, username, content, created_at, likeCount: initialLikeCount, 
           ? `${likeCount} like${likeCount > 1 ? "s" : ""}`
           : ""}
         </div>
-        <div>5 comments</div>
+        <div
+          onClick={() => setToggleComment(!toggleComment)}
+          className="cursor-pointer hover:underline"
+        >{comments.length} comments
+        </div>
       </div>
-      <div className="flex justify-around items-center border-t border-neutral-700 w-full py-2">
-        <button onClick={handleLike} className={`hover:bg-neutral-700/50 w-full py-2 rounded-md cursor-pointer  font-semibold transition duration-100 ${liked ? "text-[#1877F2]" : "text-neutral-400"}`}>
-          {liked ? "Liked" : "Like"}
+      <div className={`flex justify-around items-center border-t border-neutral-700 w-full p-1 ${toggleComment ? "border-b" : ""}`}>
+        <button onClick={handleLike} className={`hover:bg-neutral-700/50 w-full py-2 rounded-md cursor-pointer  font-semibold transition duration-100  ${isLiked ? "text-[#1877F2]" : "text-neutral-400"
+          }`}>
+          {isLiked ? "Liked" : "Like"}
         </button>
-        <button className="hover:bg-neutral-700/50 w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semibold transition duration-100">Comment</button>
+        <button
+          onClick={() => setToggleComment(!toggleComment)} className="hover:bg-neutral-700/50 w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semibold transition duration-100"
+        >
+          Comment
+        </button>
       </div>
+      {toggleComment && (
+        <div className="w-full max-w-[640px]">
+          {loading ? (
+            <p className="text-neutral-400 text-sm p-2">Loading comments...</p>
+          ) : (
+            <>
+              {comments.map((c) => (
+                <PostComment
+                  key={c.id}
+                  username={c.username}
+                  created_at={c.created_at}
+                  content={c.content}
+                />
+              ))}
+              <CommentInput id={id} />
+            </>
+          )}
+        </div>
+      )}
+
+
 
     </div>
   )
