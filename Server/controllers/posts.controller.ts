@@ -34,19 +34,20 @@ export const getPosts = async (req: Request, res: Response) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
   const query = `
-     SELECT 
+  SELECT 
     posts.id, 
     posts.content, 
     posts.created_at, 
     users.username, 
     COUNT(likes.id) AS likeCount,
-    CASE WHEN SUM(CASE WHEN likes.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked
+    CASE WHEN SUM(CASE WHEN likes.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked,
+    (SELECT COUNT(*) FROM comments c WHERE c.fk_p_id = posts.id) AS commentCount
   FROM posts 
   JOIN users ON posts.fk_u_id = users.id
   LEFT JOIN likes ON posts.id = likes.fk_p_id
   GROUP BY posts.id, posts.content, posts.created_at, users.username 
   ORDER BY posts.created_at DESC
-  `;
+`;
   try {
     const db = getDB();
     const [rows] = await db.execute(query, [req.user.userId]);
@@ -90,17 +91,58 @@ export const toggleLike = async (req: Request, res: Response) => {
   }
 }
 
-export const getComments = async (req: Request, res: Response) => {
-  const postId: number = parseInt(req.params.postId);
-  const query = `SELECT c.id, c.content, c.created_at, u.username 
-       FROM comments c
-       JOIN users u ON u.id = c.fk_u_id
-       WHERE c.fk_p_id = ?
-       ORDER BY c.created_at ASC`
+export const toggleCommentLike = async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+  const userId = req.user.userId;
+  const commentId = parseInt(req.params.commentId);
+  const checkQuery = "SELECT id FROM comment_likes WHERE fk_c_id = ? AND fk_u_id = ?";
+  const likeQuery = "INSERT INTO comment_likes (fk_c_id, fk_u_id) VALUES (?, ?)";
+  const unlikeQuery = "DELETE FROM comment_likes WHERE fk_c_id = ? AND fk_u_id = ?";
 
   try {
     const db = getDB();
-    const [result]: any = await db.execute(query, [postId]);
+    const [existing]: any = await db.execute(checkQuery, [commentId, userId]);
+
+    if (existing.length > 0) {
+      await db.execute(unlikeQuery, [commentId, userId]);
+      return res.json({ liked: false });
+    }
+
+    await db.execute(likeQuery, [commentId, userId]);
+    res.json({ liked: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getComments = async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const postId: number = parseInt(req.params.postId);
+  const query = `
+SELECT 
+  c.id, 
+  c.content, 
+  c.created_at, 
+  c.fk_u_id AS userId, 
+   c.fk_p_id AS postId,
+  u.username,
+  COUNT(cl.id) AS likeCount,
+  CASE WHEN SUM(CASE WHEN cl.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked
+FROM comments c
+JOIN users u ON u.id = c.fk_u_id
+LEFT JOIN comment_likes cl ON c.id = cl.fk_c_id
+WHERE c.fk_p_id = ?
+GROUP BY c.id, c.content, c.created_at, u.username, c.fk_u_id
+ORDER BY c.created_at ASC
+`;
+
+  try {
+    const db = getDB();
+    const [result]: any = await db.execute(query, [req.user.userId, postId]);
     res.json(result)
   } catch (error) {
     console.error(error);
@@ -114,26 +156,39 @@ export const postComment = async (req: Request, res: Response) => {
   }
 
   const { content } = req.body;
+  if (!content) return res.status(400).json({ error: "Comment required" });
+
   const userId: number = req.user.userId;
   const postId: number = parseInt(req.params.postId);
-  const insertQuery = `INSERT INTO comments (fk_p_id, fk_u_id, content) VALUES (?, ?, ?)`
-  const selectQuery = `
-      SELECT c.id, c.content, c.created_at, u.username 
-      FROM comments c
-      JOIN users u ON u.id = c.fk_u_id
-      WHERE c.id = ?
-    `;
 
-  if (!content) return res.status(400).json({ error: "comment required" });
+  const insertQuery = `INSERT INTO comments (fk_p_id, fk_u_id, content) VALUES (?, ?, ?)`;
+  const selectQuery = `
+    SELECT 
+      c.id, 
+      c.content, 
+      c.created_at, 
+      c.fk_u_id AS userId, 
+      u.username
+    FROM comments c
+    JOIN users u ON u.id = c.fk_u_id
+    WHERE c.id = ?
+  `;
 
   try {
     const db = getDB();
     const [result]: any = await db.execute(insertQuery, [postId, userId, content]);
     const [rows]: any = await db.execute(selectQuery, [result.insertId]);
 
-    res.status(201).json({ content: rows[0] });
+    res.status(201).json({
+      id: rows[0].id,
+      postId,
+      userId: rows[0].userId,
+      username: rows[0].username,
+      content: rows[0].content,
+      created_at: rows[0].created_at,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Failed to add comment" })
+    res.status(500).json({ error: "Failed to add comment" });
   }
-}
+};
