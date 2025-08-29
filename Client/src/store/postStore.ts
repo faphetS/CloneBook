@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import api from "../api/axios";
-import type { CommentState, CommentType } from "../types/comment.types";
 import type { PostState, PostType } from "../types/post.types";
 
 
@@ -47,52 +46,15 @@ export const usePostStore = create<PostState>((set) => ({
           : p
       ),
     })),
-}));
 
-export const useCommentStore = create<CommentState>((set) => ({
-  comments: [],
-  loading: true,
-
-  setComments: (comments) => set({ comments }),
-
-  fetchComments: async (postId: number) => {
-    set({ loading: true });
-    try {
-      const res = await api.get(`/content/post/${postId}/comments`);
-      const comments: CommentType[] = res.data.map((c: CommentType) => ({
-        ...c,
-        isLiked: Boolean(c.isLiked),
-      }));
-      set({ comments });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      set({ loading: false });
-    }
-  },
-
-  addComment: (comment) =>
+  updatePost: (postId, data) =>
     set((state) => ({
-      comments: [
-        {
-          ...comment,
-          likeCount: comment.likeCount ?? 0,
-          isLiked: Boolean(comment.isLiked),
-        },
-        ...state.comments,
-      ],
-    })),
-
-  toggleLike: (commentId) =>
-    set((state) => ({
-      comments: state.comments.map((c) =>
-        c.id === commentId
-          ? {
-            ...c,
-            isLiked: !c.isLiked,
-            likeCount: c.isLiked ? c.likeCount - 1 : c.likeCount + 1,
-          }
-          : c
+      posts: state.posts.map((p) =>
+        p.id === postId ? { ...p, ...data } : p
       ),
     })),
+
+
 }));
+
+
