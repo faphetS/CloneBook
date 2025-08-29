@@ -1,7 +1,7 @@
 export type CommentType = {
   id: number;
-  postId: number;
   userId: number;
+  postId: number;
   username: string;
   content: string;
   created_at: string;
@@ -10,12 +10,12 @@ export type CommentType = {
 };
 
 export type CommentState = {
-  comments: CommentType[];
-  loading: boolean;
-  setComments: (comments: CommentType[]) => void;
+  comments: Record<number, CommentType[]>;
+  loading: Record<number, boolean>;
+  setComments: (postId: number, comments: CommentType[]) => void;
   fetchComments: (postId: number) => Promise<void>;
-  addComment: (comment: CommentType) => void;
-  toggleLike: (commentId: number) => void;
+  addComment: (postId: number, comment: CommentType) => void;
+  toggleLike: (postId: number, commentId: number) => void;
 };
 
 export type CommentProp = {
