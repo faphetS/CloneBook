@@ -6,6 +6,7 @@ export interface PostType {
   created_at: string;
   likeCount: number;
   isLiked: boolean
+  commentCount: number;
 };
 export interface PostState {
   posts: PostType[];
@@ -14,4 +15,5 @@ export interface PostState {
   fetchPosts: () => Promise<void>;
   addPost: (post: PostType) => void;
   toggleLike: (postId: number) => void;
+  updatePost: (postId: number, data: Partial<PostType>) => void;
 }
