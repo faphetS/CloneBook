@@ -1,12 +1,13 @@
 import { useRef, useState } from "react";
 import api from "../../api/axios";
-import { useCommentStore } from "../../store/postStore";
-import type { CommentType } from "../../types/comment.types";
+import { useCommentStore } from "../../store/commentStore";
+import { usePostStore } from "../../store/postStore";
 
 const CommentInput = ({ id }: { id: number }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [content, setContent] = useState("");
-  const { comments, addComment, setComments } = useCommentStore();
+  const { addComment } = useCommentStore();
+  const { updatePost, posts } = usePostStore();
 
   const handleInput = () => {
     const el = textareaRef.current;
@@ -18,43 +19,17 @@ const CommentInput = ({ id }: { id: number }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
-
-    // optimistic comment
-    const tempComment: CommentType = {
-      id: Date.now(),
-      postId: id,
-      userId: 1, // replace with logged-in user ID
-      username: "You", // replace with actual username
-      content,
-      created_at: new Date().toISOString(),
-      likeCount: 0,
-      isLiked: false,
-    };
-
-    // show immediately
-    addComment(tempComment);
-    setContent("");
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
-
     try {
       const res = await api.post(`/content/post/${id}/comments`, { content });
-      const newComment: CommentType = {
-        ...res.data.content,
-        postId: id,
-        userId: 1,
-        likeCount: 0,
-        isLiked: false,
-      };
-
-      // replace temp comment with backend comment
-      setComments(
-        comments.map((c) => (c.id === tempComment.id ? newComment : c))
-      );
+      addComment(id, res.data);
+      const currentPost = posts.find((p) => p.id === id);
+      if (currentPost) {
+        updatePost(id, { commentCount: (currentPost.commentCount || 0) + 1 });
+      }
+      setContent("");
     } catch (err) {
       console.error("Failed to post comment", err);
-      // rollback
-      setComments(comments.filter((c) => c.id !== tempComment.id));
+
     }
   };
 
