@@ -37,7 +37,8 @@ export const getPosts = async (req: Request, res: Response) => {
   SELECT 
     posts.id, 
     posts.content, 
-    posts.created_at, 
+    posts.created_at,
+    users.id AS userId, 
     users.username, 
     COUNT(likes.id) AS likeCount,
     CASE WHEN SUM(CASE WHEN likes.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked,
@@ -45,12 +46,44 @@ export const getPosts = async (req: Request, res: Response) => {
   FROM posts 
   JOIN users ON posts.fk_u_id = users.id
   LEFT JOIN likes ON posts.id = likes.fk_p_id
-  GROUP BY posts.id, posts.content, posts.created_at, users.username 
+  GROUP BY posts.id, posts.content, posts.created_at, users.id, users.username 
   ORDER BY posts.created_at DESC
 `;
   try {
     const db = getDB();
     const [rows] = await db.execute(query, [req.user.userId]);
+    res.json(rows);
+  } catch (error: any) {
+    console.log("Error fetching posts:", error.message || error);
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+}
+
+export const getUserPosts = async (req: Request, res: Response) => {
+  const userId = Number(req.params.userId);
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const query = `
+    SELECT 
+      posts.id, 
+      posts.content, 
+      posts.created_at, 
+      users.id AS userId,
+      users.username, 
+      COUNT(likes.id) AS likeCount,
+      CASE WHEN SUM(CASE WHEN likes.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked,
+      (SELECT COUNT(*) FROM comments c WHERE c.fk_p_id = posts.id) AS commentCount
+    FROM posts 
+    JOIN users ON posts.fk_u_id = users.id
+    LEFT JOIN likes ON posts.id = likes.fk_p_id
+    WHERE users.id = ?
+    GROUP BY posts.id, posts.content, posts.created_at, users.id, users.username 
+    ORDER BY posts.created_at DESC
+  `;
+  try {
+    const db = getDB();
+    const [rows] = await db.execute(query, [req.user.userId, userId]);
     res.json(rows);
   } catch (error: any) {
     console.log("Error fetching posts:", error.message || error);
@@ -127,7 +160,7 @@ SELECT
   c.id, 
   c.content, 
   c.created_at, 
-  c.fk_u_id AS userId, 
+  c.fk_u_id AS userId,
    c.fk_p_id AS postId,
   u.username,
   COUNT(cl.id) AS likeCount,
