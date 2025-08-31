@@ -24,6 +24,22 @@ export const usePostStore = create<PostState>((set) => ({
     }
   },
 
+  fetchUserPosts: async (userId: number) => {
+    set({ loading: true });
+    try {
+      const res = await api.get(`/content/${userId}`);
+      const posts: PostType[] = res.data.map((p: PostType) => ({
+        ...p,
+        isLiked: Boolean(p.isLiked),
+      }));
+      set({ posts });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      set({ loading: false });
+    }
+  },
+
   addPost: (post) =>
     set((state) => ({
       posts: [{
