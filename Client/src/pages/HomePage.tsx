@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import api from "../../api/axios";
-import Header from "../../components/Header";
-import Post from "../../components/Posts/Post";
-import { usePostStore } from "../../store/postStore";
-import LeftNav from "./LeftNav";
-import RightNav from "./RightNav";
+import api from "../api/axios";
+import Header from "../components/Header";
+import LeftNav from "../components/LeftNav";
+import Post from "../components/Posts/Post";
+import RightNav from "../components/RightNav";
+import { useAuthStore } from "../store/AuthStore";
+import { usePostStore } from "../store/postStore";
 
 
 const HomePage = () => {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { user } = useAuthStore();
   const [content, setContent] = useState("");
   const { posts, loading, fetchPosts, addPost } = usePostStore();
 
@@ -74,12 +76,12 @@ const HomePage = () => {
                 rows={1}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="What's on your mind, Justin?"
-                className="w-full bg-neutral-700/30 rounded-2xl px-3 py-3 text-white focus:outline-none focus:ring-1 focus:ring-[#1877F2] placeholder:text-neutral-400 overflow-y-hidden"
+                placeholder={`What's on your mind, ${user?.username}?`}
+                className="w-full bg-neutral-700/30 rounded-2xl px-3 py-2.5 text-white focus:outline-none focus:ring-1 focus:ring-[#1877F2] placeholder:text-neutral-400 overflow-y-hidden leading-tight resize-none"
               />
             </div>
             <div className="flex justify-around items-center border-t border-neutral-700 w-full p-1">
-              <button className="hover:bg-green-500 hover:text-white w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semimbold transition duration-100">Photo</button>
+              <button onClick={() => setContent("")} className="hover:bg-neutral-700/50 hover:text-red-600 w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semimbold transition duration-100">Clear</button>
               <button type="submit" className="hover:bg-[#1877F2] hover:text-white w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semimbold transition duration-100">Post</button>
             </div>
           </form>
