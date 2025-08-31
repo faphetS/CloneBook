@@ -61,7 +61,7 @@ const CommentInput = ({ id }: { id: number }) => {
         </svg>
 
         {/* Input */}
-        <div className="relative w-full">
+        <div className="relative w-full flex items-center">
           <textarea
             ref={textareaRef}
             onInput={handleInput}
@@ -69,17 +69,33 @@ const CommentInput = ({ id }: { id: number }) => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Write a comment..."
-            className="w-full bg-neutral-700/30 rounded-2xl px-3 pr-10 py-3 text-white 
-             focus:outline-none focus:ring-1 focus:ring-[#1877F2] 
-             placeholder:text-neutral-400 overflow-y-hidden"
+            className="w-full bg-neutral-700/30 rounded-2xl px-3 pr-9 py-2.5 text-white 
+     focus:outline-none focus:ring-1 focus:ring-[#1877F2] 
+     placeholder:text-neutral-400 overflow-y-hidden leading-tight resize-none"
           />
           <button
             type="submit"
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 text-neutral-400 rounded-2xl p-1 hover:text-[#1877F2] hover:bg-neutral-700/90 transition duration-100 cursor-pointer"
+            className="absolute right-1 w-8 h-8 flex items-center justify-center 
+     text-neutral-400 rounded-2xl hover:text-[#1877F2] hover:bg-neutral-700/90 
+     transition duration-100 cursor-pointer"
           >
-            ➤
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+              />
+            </svg>
           </button>
         </div>
+
       </div>
     </form>
   );
