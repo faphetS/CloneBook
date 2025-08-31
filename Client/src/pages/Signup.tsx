@@ -2,7 +2,7 @@ import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { useAuthStore } from "../store/useAuthStore";
+import { useAuthStore } from "../store/AuthStore";
 
 const Signup = () => {
   const navigate = useNavigate();
