@@ -2,7 +2,7 @@ import { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { useAuthStore } from '../store/useAuthStore';
+import { useAuthStore } from '../store/AuthStore';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -31,8 +31,8 @@ const Login = () => {
     setError('');
     try {
       const res = await api.post('/auth/login', form);
-      const { user, accessToken, refreshToken } = res.data;
-      login(user, accessToken, refreshToken);
+      const { user, accessToken } = res.data;
+      login(user, accessToken);
       navigate('/');
     } catch (err) {
       const error = err as AxiosError<{ message?: string }>;
