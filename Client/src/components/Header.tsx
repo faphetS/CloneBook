@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { useAuthStore } from '../store/useAuthStore';
+import { useAuthStore } from '../store/AuthStore';
 import type Tab from '../types/tab.type';
 
 // Move tabs outside the component to make them stable
@@ -14,7 +14,7 @@ const tabs: Tab[] = [
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuthStore();
+  const { logout, user } = useAuthStore();
 
   const handleLogout = async () => {
     try {
@@ -28,11 +28,24 @@ const Header: React.FC = () => {
 
   const [active, setActive] = useState(0);
 
-  // Update active tab whenever the location changes
   useEffect(() => {
-    const index = tabs.findIndex(tab => tab.path === location.pathname);
+    let index = tabs.findIndex(tab => tab.path === location.pathname);
+
+    if (location.pathname === `/profile/${user?.id}`) {
+      index = tabs.findIndex(tab => tab.path === '/profile');
+    }
     if (index !== -1) setActive(index);
-  }, [location.pathname]);
+    else setActive(-1);
+  }, [location.pathname, user?.id]);
+
+  const handleClick = (tab: Tab) => {
+    if (tab.path === "/profile") {
+      navigate(`/profile/${user?.id}`);
+    } else {
+      navigate(tab.path);
+    }
+  };
+
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-neutral-900 px-4 flex justify-between items-center text-base">
@@ -45,7 +58,7 @@ const Header: React.FC = () => {
           <div
             key={i}
             className="group w-[120px] h-[64px] flex justify-center items-center cursor-pointer relative"
-            onClick={() => navigate(tab.path)}
+            onClick={() => handleClick(tab)}
           >
             {/* Blue border animation */}
             <div
