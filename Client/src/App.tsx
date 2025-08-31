@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom"
 import RequireAuth from "./components/routeCheck/RequireAuth"
-import HomePage from "./pages/HomePage/HomePage"
+import HomePage from "./pages/HomePage"
 import Login from "./pages/Login"
 import ProfilePage from "./pages/ProfilePage"
 import Signup from "./pages/Signup"
@@ -27,7 +27,7 @@ const App = () => {
             </RequireAuth>
           } />
         <Route
-          path="/profile"
+          path="/profile/:id"
           element={
             <RequireAuth>
               <ProfilePage />
