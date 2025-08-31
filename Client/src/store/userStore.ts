@@ -1,0 +1,75 @@
+import axios from "axios";
+import { create } from "zustand";
+import api from "../api/axios";
+import type { UserState, UserType } from "../types/user.types";
+
+
+export const useUserStore = create<UserState>((set) => ({
+  profile: null,
+  loading: true,
+
+  fetchUserDetails: async (userId: number) => {
+    set({ loading: true });
+    try {
+      const res = await api.get<UserType>(`/user/${userId}`);
+      set({ profile: res.data });
+    } catch (err) {
+      console.error("Failed to fetch user", err);
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  updateProfile: async (data: {
+    username?: string;
+    password?: string;
+    profilePic?: File | null;
+  }): Promise<{ message: string }> => {
+    set({ loading: true });
+
+    try {
+      const formData = new FormData();
+      if (data.username) formData.append("username", data.username);
+      if (data.password) formData.append("password", data.password);
+      if (data.profilePic) formData.append("profilePic", data.profilePic);
+
+      console.log("Sending updateProfile request with FormData:");
+      for (const [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
+
+      const res = await api.put("/user/profile", formData);
+
+      console.log("updateProfile response:", res.data);
+
+      set((state) => {
+        if (!state.profile) return state;
+        return {
+          profile: {
+            ...state.profile,
+            username: data.username ?? state.profile.username,
+            profilePic: data.profilePic ? (data.profilePic as File).name : state.profile.profilePic,
+          },
+        };
+      });
+
+      return res.data;
+    } catch (err: unknown) {
+      console.error("Failed to update profile:", err);
+
+      // If AxiosError, log details
+      if (axios.isAxiosError(err)) {
+        console.error("Axios error details:");
+        console.error("Status:", err.response?.status);
+        console.error("Response data:", err.response?.data);
+        console.error("Headers:", err.response?.headers);
+      }
+
+      throw err;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+
+}));
