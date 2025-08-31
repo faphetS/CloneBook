@@ -56,15 +56,16 @@ const PostComment = ({ id, postId, username, created_at, content, likeCount, isL
                   {isLiked ? "Liked" : "Like"}
                 </button>
               </div>
-              <div className="flex items-center">
-                <span>{likeCount}</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="size-4 text-[#1877F2]"
-                >
-                  <path d="M6.633 10.25c.806 0 1.533-.446 
+              {likeCount > 0 ? (
+                <div className="flex items-center">
+                  <span>{likeCount}</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="size-4 text-[#1877F2]"
+                  >
+                    <path d="M6.633 10.25c.806 0 1.533-.446 
             2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 
             1.35-.956 1.653-1.715a4.498 4.498 0 0 0 
             .322-1.672V2.75a.75.75 0 0 1 
@@ -83,8 +84,11 @@ const PostComment = ({ id, postId, username, created_at, content, likeCount, isL
             9.953 4.167 9.5 5 9.5h1.053c.472 
             0 .745.556.5.96a8.958 8.958 0 0 
             0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
-                </svg>
-              </div>
+                  </svg>
+                </div>
+              ) : (
+                <div></div>
+              )}
             </div>
           </div>
 
