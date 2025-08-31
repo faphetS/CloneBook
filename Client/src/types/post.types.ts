@@ -1,6 +1,7 @@
 
 export interface PostType {
   id: number;
+  userId: number;
   username: string;
   content: string;
   created_at: string;
@@ -13,6 +14,7 @@ export interface PostState {
   loading: boolean;
   setPosts: (posts: PostType[]) => void;
   fetchPosts: () => Promise<void>;
+  fetchUserPosts: (userId: number) => Promise<void>;
   addPost: (post: PostType) => void;
   toggleLike: (postId: number) => void;
   updatePost: (postId: number, data: Partial<PostType>) => void;
