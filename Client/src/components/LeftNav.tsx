@@ -9,20 +9,20 @@ const LeftNav = () => {
       <Link to={`/profile/${user?.id}`}>
         <div className="flex items-center hover:bg-neutral-700/50 cursor-pointer rounded-lg my-1 px-1">
           {user?.profilePic ? (
-            <div className="min-w-[48px] min-h-[48px] flex items-center justify-center mr-1">
+            <div className="min-w-12 min-h-12 flex items-center justify-center mr-1">
               <img
                 src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${user.profilePic}`}
                 alt={`${user.username}'s profile`}
-                className="w-[39px] h-[39px] rounded-full object-cover border-neutral-900"
+                className="w-11 h-11 rounded-full object-cover"
               />
             </div>
 
           ) : (
-            <div className="min-w-[48px] min-h-[48px] flex items-center justify-center mr-1">
+            <div className="min-w-12 min-h-12 flex items-center justify-center mr-1">
               <img
                 src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
                 alt={`${user?.username}'s profile`}
-                className="w-[39px] h-[39px] rounded-full object-cover border-2 border-neutral-900"
+                className="w-11 h-11 rounded-full object-cover border-2 border-neutral-300"
               />
             </div>
           )}
