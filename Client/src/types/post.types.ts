@@ -4,6 +4,7 @@ export interface PostType {
   userId: number;
   username: string;
   content: string;
+  profilePic: string;
   created_at: string;
   likeCount: number;
   isLiked: boolean

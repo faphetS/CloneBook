@@ -11,7 +11,13 @@ export const createPost = async (req: Request, res: Response) => {
     const userId: number = req.user.userId;
     const insertQuery = "INSERT INTO posts (fk_u_id, content) VALUES (?, ?)";
     const selectQuery = `
-      SELECT posts.id, posts.content, posts.created_at, users.username 
+      SELECT 
+        posts.id, 
+        posts.content, 
+        posts.created_at, 
+        users.id AS userId,
+        users.username,
+        users.profile_pic AS profilePic
       FROM posts 
       JOIN users ON posts.fk_u_id = users.id 
       WHERE posts.id = ?
@@ -40,6 +46,7 @@ export const getPosts = async (req: Request, res: Response) => {
     posts.created_at,
     users.id AS userId, 
     users.username, 
+    users.profile_pic AS profilePic,
     COUNT(likes.id) AS likeCount,
     CASE WHEN SUM(CASE WHEN likes.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked,
     (SELECT COUNT(*) FROM comments c WHERE c.fk_p_id = posts.id) AS commentCount
@@ -71,6 +78,7 @@ export const getUserPosts = async (req: Request, res: Response) => {
       posts.created_at, 
       users.id AS userId,
       users.username, 
+      users.profile_pic AS profilePic,
       COUNT(likes.id) AS likeCount,
       CASE WHEN SUM(CASE WHEN likes.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked,
       (SELECT COUNT(*) FROM comments c WHERE c.fk_p_id = posts.id) AS commentCount
@@ -163,6 +171,7 @@ SELECT
   c.fk_u_id AS userId,
    c.fk_p_id AS postId,
   u.username,
+  u.profile_pic AS profilePic,
   COUNT(cl.id) AS likeCount,
   CASE WHEN SUM(CASE WHEN cl.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked
 FROM comments c
@@ -201,10 +210,12 @@ export const postComment = async (req: Request, res: Response) => {
       c.content, 
       c.created_at, 
       c.fk_u_id AS userId, 
+      u.profile_pic AS profilePic,
       u.username
     FROM comments c
     JOIN users u ON u.id = c.fk_u_id
     WHERE c.id = ?
+    ORDER BY c.created_at ASC
   `;
 
   try {
@@ -217,6 +228,7 @@ export const postComment = async (req: Request, res: Response) => {
       postId,
       userId: rows[0].userId,
       username: rows[0].username,
+      profilePic: rows[0].profilePic,
       content: rows[0].content,
       created_at: rows[0].created_at,
     });
