@@ -10,7 +10,7 @@ import PostComment from "./PostComment";
 
 
 //  post text only
-const Post = ({ id, userId, username, content, created_at, likeCount, isLiked, commentCount }: PostType) => {
+const Post = ({ id, userId, username, content, profilePic, created_at, likeCount, isLiked, commentCount }: PostType) => {
   const { toggleLike } = usePostStore();
 
   const { comments, fetchComments, loading } = useCommentStore();
@@ -36,24 +36,24 @@ const Post = ({ id, userId, username, content, created_at, likeCount, isLiked, c
 
       <div className="w-full min-h-12 flex items-center gap-3">
         <Link to={`/profile/${userId}`}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-12 h-12 text-neutral-400 shrink-0"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 
-                7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 
-                0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 
-                0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 
-                3 3 0 0 1 6 0Z"
-            />
-          </svg>
+          {profilePic ? (
+            <div className="min-w-12 min-h-12 flex items-center justify-center">
+              <img
+                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${profilePic}`}
+                alt={`${username}'s profile`}
+                className="w-11 h-11 rounded-full object-cover border-neutral-800"
+              />
+            </div>
+
+          ) : (
+            <div className="min-w-[48px] min-h-[48px] flex items-center justify-center">
+              <img
+                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
+                alt={`${username}'s profile`}
+                className="w-11 h-11 rounded-full object-cover border-2 border-neutral-300"
+              />
+            </div>
+          )}
         </Link>
 
         <div className="flex flex-col">
