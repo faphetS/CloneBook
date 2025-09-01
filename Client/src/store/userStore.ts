@@ -24,7 +24,7 @@ export const useUserStore = create<UserState>((set) => ({
     username?: string;
     password?: string;
     profilePic?: File | null;
-  }): Promise<{ message: string }> => {
+  }): Promise<{ message: string, user: UserType }> => {
     set({ loading: true });
 
     try {
@@ -38,26 +38,19 @@ export const useUserStore = create<UserState>((set) => ({
         console.log(key, value);
       }
 
-      const res = await api.put("/user/profile", formData);
+      const res = await api.put<{ message: string; user: UserType }>("/user/profile", formData);
+
 
       console.log("updateProfile response:", res.data);
 
-      set((state) => {
-        if (!state.profile) return state;
-        return {
-          profile: {
-            ...state.profile,
-            username: data.username ?? state.profile.username,
-            profilePic: data.profilePic ? (data.profilePic as File).name : state.profile.profilePic,
-          },
-        };
+      set({
+        profile: res.data.user,
       });
 
       return res.data;
     } catch (err: unknown) {
       console.error("Failed to update profile:", err);
 
-      // If AxiosError, log details
       if (axios.isAxiosError(err)) {
         console.error("Axios error details:");
         console.error("Status:", err.response?.status);
