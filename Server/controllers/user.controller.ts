@@ -241,8 +241,20 @@ export const updateProfile = async (req: Request, res: Response) => {
 
     await db.execute(query, values);
 
-    res.json({ message: "Profile updated successfully" });
+    const [updatedRows] = await db.execute(
+      "SELECT id, username, profile_pic AS profilePic, created_at FROM users WHERE id = ?",
+      [req.user.userId]
+    );
+    const updatedUser = (updatedRows as any)[0];
+
+    res.json({
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+
+
   } catch (error: any) {
+
     console.error(error);
     if (error instanceof Error && error.message.includes("File too large")) {
       return res.status(400).json({ message: "Profile picture must be under 1MB" });
