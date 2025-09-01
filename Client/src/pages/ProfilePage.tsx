@@ -1,23 +1,21 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import api from "../api/axios";
 import EditProfileModal from "../components/EditProfileModal";
 import Header from "../components/Header";
 import LeftNav from "../components/LeftNav";
 import Post from "../components/Posts/Post";
+import Poster from "../components/Posts/Poster";
 import RightNav from "../components/RightNav";
 import { useAuthStore } from "../store/AuthStore";
 import { usePostStore } from "../store/postStore";
 import { useUserStore } from "../store/userStore";
 
 const ProfilePage = () => {
-  const { id } = useParams();
-  const { user: me } = useAuthStore();
   const { profile, fetchUserDetails, updateProfile } = useUserStore();
+  const { posts, loading, fetchUserPosts } = usePostStore();
+  const { user: me, updateUser } = useAuthStore();
+  const { id } = useParams();
   const isOwnProfile = useMemo(() => me && String(me.id) === id, [me, id]);
-  const { posts, loading, fetchUserPosts, addPost } = usePostStore();
-  const [content, setContent] = useState("");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
@@ -27,33 +25,13 @@ const ProfilePage = () => {
     }
   }, [id, fetchUserPosts, fetchUserDetails]);
 
-  const handleInput = () => {
-    const el = textareaRef.current;
-    if (el) {
-      el.style.height = "auto";
-      el.style.height = el.scrollHeight + "px";
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      const res = await api.post('/content/post', { content });
-      addPost(res.data);
-      setContent("");
-    } catch (err) {
-      console.error("Post failed", err);
-      setContent("");
-    }
-  };
-
   const handleSaveProfile = async (data: { username: string; password: string; profilePic: File | null }) => {
     if (!updateProfile) return;
 
     try {
-      await updateProfile(data);
-      //updateUserlogged data
+      const res = await updateProfile(data);
+      updateUser(res.user);
+
       if (profile?.id) fetchUserDetails(profile.id);
       setIsEditModalOpen(false);
     } catch (err) {
@@ -83,7 +61,7 @@ const ProfilePage = () => {
                 <img
                   src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
                   alt={`${profile?.username}'s profile`}
-                  className="w-[162px] h-[162px] rounded-full object-cover border-2 border-neutral-900"
+                  className="w-[162px] h-[162px] rounded-full object-cover border-2 border-neutral-300"
                 />
               </div>
             )}
@@ -107,41 +85,7 @@ const ProfilePage = () => {
           </div>
 
           {isOwnProfile && (
-            <form onSubmit={handleSubmit} className="bg-neutral-900 w-full flex flex-col items-center rounded-2xl px-3 pt-3 gap-3">
-              <div className="w-full min-h-12 flex items-center gap-3">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-12 h-12 text-neutral-400 shrink-0"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 
-                     7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 
-                     0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 
-                     0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 
-                     3 3 0 0 1 6 0Z"
-                  />
-                </svg>
-                <textarea
-                  ref={textareaRef}
-                  onInput={handleInput}
-                  rows={1}
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder={`What's on your mind, ${me?.username}?`}
-                  className="w-full bg-neutral-700/30 rounded-2xl px-3 py-2.5 text-white focus:outline-none focus:ring-1 focus:ring-[#1877F2] placeholder:text-neutral-400 overflow-y-hidden leading-tight resize-none"
-                />
-              </div>
-              <div className="flex justify-around items-center border-t border-neutral-700 w-full p-1">
-                <button onClick={() => setContent("")} className="hover:bg-neutral-700/50 hover:text-red-600 w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semimbold transition duration-100">Clear</button>
-                <button type="submit" className="hover:bg-[#1877F2] hover:text-white w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semimbold transition duration-100">Post</button>
-              </div>
-            </form>
+            <Poster />
           )}
 
           {loading ? (
