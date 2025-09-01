@@ -3,6 +3,7 @@ export type CommentType = {
   userId: number;
   postId: number;
   username: string;
+  profilePic: string;
   content: string;
   created_at: string;
   likeCount: number;
@@ -17,12 +18,6 @@ export type CommentState = {
   addComment: (postId: number, comment: CommentType) => void;
   toggleLike: (postId: number, commentId: number) => void;
 };
-
-export type CommentProp = {
-  username: string;
-  created_at: string;
-  content: string;
-}
 
 export type CommentInputProps = {
   onSubmit: (text: string) => void;

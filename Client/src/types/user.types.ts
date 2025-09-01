@@ -1,4 +1,4 @@
-// types.ts
+// user.types.ts
 export interface UserType {
   id: number;
   username: string;
@@ -16,5 +16,5 @@ export interface UserState {
     username?: string;
     password?: string;
     profilePic?: File | null;
-  }) => Promise<{ message: string }>;
+  }) => Promise<{ message: string, user: UserType }>;
 }

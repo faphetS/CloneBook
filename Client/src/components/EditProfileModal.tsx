@@ -6,7 +6,12 @@ import { Fragment, useEffect, useState } from "react";
 interface EditProfileModalProps {
   isOpen: boolean;
   closeModal: () => void;
-  onSave: (data: { username: string; password: string; profilePic: File | null }) => void;
+  onSave: (
+    data: {
+      username: string;
+      password: string;
+      profilePic: File | null
+    }) => void;
   currentUsername: string;
   currentProfilePicUrl?: string;
 }
@@ -22,6 +27,12 @@ const EditProfileModal = ({
   const [password, setPassword] = useState("");
   const [profilePic, setProfilePic] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(currentProfilePicUrl);
+  const resolvedPreviewUrl = previewUrl
+    ? previewUrl.startsWith("blob:")
+      ? previewUrl
+      : `${import.meta.env.VITE_API_DOMAIN}/uploads/${previewUrl}`
+    : undefined;
+
 
   useEffect(() => {
     setUsername(currentUsername);
@@ -66,11 +77,11 @@ const EditProfileModal = ({
 
             {/* Profile Picture + Button */}
             <div className="flex flex-col items-center gap-4">
-              {previewUrl ? (
+              {resolvedPreviewUrl ? (
                 <img
-                  src={previewUrl}
+                  src={resolvedPreviewUrl}
                   alt="Profile Preview"
-                  className="w-[200px] h-[200px] rounded-full object-cover"
+                  className="w-[200px] h-[200px] rounded-full object-cover border-2 border-neutral-800"
                 />
               ) : (
                 <svg

@@ -49,7 +49,7 @@ export const useCommentStore = create<CommentState>((set, get) => ({
     set((state) => ({
       comments: {
         ...state.comments,
-        [postId]: [formatted, ...(state.comments[postId] ?? [])],
+        [postId]: [...(state.comments[postId] ?? []), formatted],
       },
     }));
   },
