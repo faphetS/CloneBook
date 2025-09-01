@@ -25,10 +25,10 @@ export const useAuthStore = create<AuthState>()(
           accessToken,
         }),
 
-      updateUser: () =>
-        set({
-          //update userr
-        }),
+      updateUser: (updatedUser: User) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...updatedUser } : updatedUser,
+        })),
 
     }),
     {
