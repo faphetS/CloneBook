@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
 import { getDB } from "../config/db.js";
+import { createNotification } from "./notif.controller.js";
 
 
 export const createPost = async (req: Request, res: Response) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    const { content } = req.body;
-    const userId: number = req.user.userId;
-    const insertQuery = "INSERT INTO posts (fk_u_id, content) VALUES (?, ?)";
-    const selectQuery = `
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const { content } = req.body;
+  const userId: number = req.user.userId;
+  const insertQuery = "INSERT INTO posts (fk_u_id, content) VALUES (?, ?)";
+  const selectQuery = `
       SELECT 
         posts.id, 
         posts.content, 
@@ -22,6 +22,7 @@ export const createPost = async (req: Request, res: Response) => {
       JOIN users ON posts.fk_u_id = users.id 
       WHERE posts.id = ?
     `;
+  try {
     const db = getDB();
 
     if (!content) return res.status(400).json({ success: false, message: "Nothing to post." });
@@ -108,6 +109,7 @@ export const toggleLike = async (req: Request, res: Response) => {
     const checkLikeQuery = "SELECT id FROM likes WHERE fk_p_id = ? AND fk_u_id = ?";
     const unlikeQuery = "DELETE FROM likes WHERE fk_p_id = ? AND fk_u_id = ?";
     const likeQuery = "INSERT INTO likes (fk_p_id, fk_u_id) VALUES (?, ?)";
+    const postOwnerQuery = "SELECT fk_u_id FROM posts WHERE id = ?";
 
     const db = getDB();
 
@@ -123,6 +125,17 @@ export const toggleLike = async (req: Request, res: Response) => {
 
     //like
     await db.execute(likeQuery, [postId, userId]);
+
+    //notif
+    const [ownerResult]: any = await db.execute(postOwnerQuery, [postId]);
+    if (ownerResult.length > 0) {
+      const ownerId = ownerResult[0].fk_u_id;
+      if (ownerId !== userId) {
+        await createNotification(ownerId, userId, "PostLike", "liked your post.");
+      }
+    }
+
+
     res.json({ liked: true });
 
 
@@ -140,6 +153,7 @@ export const toggleCommentLike = async (req: Request, res: Response) => {
   const checkQuery = "SELECT id FROM comment_likes WHERE fk_c_id = ? AND fk_u_id = ?";
   const likeQuery = "INSERT INTO comment_likes (fk_c_id, fk_u_id) VALUES (?, ?)";
   const unlikeQuery = "DELETE FROM comment_likes WHERE fk_c_id = ? AND fk_u_id = ?";
+  const commentOwnerQuery = "SELECT fk_u_id FROM comments WHERE id = ?";
 
   try {
     const db = getDB();
@@ -151,6 +165,17 @@ export const toggleCommentLike = async (req: Request, res: Response) => {
     }
 
     await db.execute(likeQuery, [commentId, userId]);
+
+    //notification
+    const [ownerResult]: any = await db.execute(commentOwnerQuery, [commentId]);
+    if (ownerResult.length > 0) {
+      const ownerId = ownerResult[0].fk_u_id;
+      if (ownerId !== userId) {
+        await createNotification(ownerId, userId, "CommentLike", "liked your comment.");
+      }
+    }
+
+
     res.json({ liked: true });
   } catch (err) {
     console.error(err);
@@ -217,11 +242,21 @@ export const postComment = async (req: Request, res: Response) => {
     WHERE c.id = ?
     ORDER BY c.created_at ASC
   `;
+  const postOwnerQuery = "SELECT fk_u_id FROM posts WHERE id = ?";
 
   try {
     const db = getDB();
     const [result]: any = await db.execute(insertQuery, [postId, userId, content]);
     const [rows]: any = await db.execute(selectQuery, [result.insertId]);
+
+    //notification
+    const [ownerResult]: any = await db.execute(postOwnerQuery, [postId]);
+    if (ownerResult.length > 0) {
+      const ownerId = ownerResult[0].fk_u_id;
+      if (ownerId !== userId) {
+        await createNotification(ownerId, userId, "PostComment", "commented on your post.");
+      }
+    }
 
     res.status(201).json({
       id: rows[0].id,
