@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuthStore } from '../store/AuthStore';
 import type Tab from '../types/tab.type';
+import NotificationDropdown from './NotificationDropDown';
 
 
 // Move tabs outside the component to make them stable
@@ -84,37 +85,30 @@ const Header: React.FC = () => {
       </div>
 
       <div className="min-w-[123px] w-[150px] justify-end flex gap-3 items-center relative flex-shrink-0 ">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className={`size-9 transition-colors duration-100 text-neutral-400 bg-neutral-800 hover:bg-neutral-700 rounded-3xl p-2 cursor-pointer`}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-        </svg>
-        <div className="relative group w-12 h-12">
-          {user?.profilePic ? (
-            <div className="min-w-12 min-h-12 flex items-center justify-center">
-              <img
-                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${user.profilePic}`}
-                alt={`${user.username}'s profile`}
-                className="w-11 h-11 rounded-full object-cover"
-              />
-            </div>
 
+        <NotificationDropdown />
+
+        <div className="relative w-11 h-11 group">
+          {/* Profile Picture */}
+          {user?.profilePic ? (
+            <img
+              src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${user.profilePic}`}
+              alt={`${user.username}'s profile`}
+              className="w-11 h-11 rounded-full object-cover"
+            />
           ) : (
-            <div className="min-w-12 min-h-12 flex items-center justify-center">
-              <img
-                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
-                alt={`${user?.username}'s profile`}
-                className="w-11 h-11 rounded-full object-cover border-2 border-neutral-300"
-              />
-            </div>
+            <img
+              src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
+              alt={`${user?.username}'s profile`}
+              className="w-11 h-11 rounded-full object-cover border-2 border-neutral-300"
+            />
           )}
 
-          <div className="w-10 h-10 absolute inset-1 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer group">
+          {/* Logout overlay button */}
+          <div
+            className="absolute inset-0 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            onClick={handleLogout}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -122,7 +116,6 @@ const Header: React.FC = () => {
               strokeWidth={1.5}
               stroke="currentColor"
               className="w-6 h-6 text-white"
-              onClick={handleLogout}
             >
               <path
                 strokeLinecap="round"
@@ -132,13 +125,13 @@ const Header: React.FC = () => {
             </svg>
 
             {/* Tooltip */}
-            <span className="absolute top-full mt-1 px-2 py-1 text-xs text-white bg-black/50 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="absolute top-full mt-1 px-2 py-1 text-xs text-white bg-black/50 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
               Logout
             </span>
           </div>
-
-
         </div>
+
+
       </div>
     </header>
   );
