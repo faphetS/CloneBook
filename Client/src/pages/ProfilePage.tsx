@@ -7,12 +7,29 @@ import Post from "../components/Posts/Post";
 import Poster from "../components/Posts/Poster";
 import RightNav from "../components/RightNav";
 import { useAuthStore } from "../store/AuthStore";
+import { useFriendStore } from "../store/frienStore";
 import { usePostStore } from "../store/postStore";
 import { useUserStore } from "../store/userStore";
 
 const ProfilePage = () => {
-  const { profile, fetchUserDetails, updateProfile } = useUserStore();
-  const { posts, loading, fetchUserPosts } = usePostStore();
+  const {
+    profile,
+    fetchUserDetails,
+    updateProfile
+  } = useUserStore();
+  const {
+    posts,
+    loading,
+    fetchUserPosts
+  } = usePostStore();
+  const {
+    friendStatus,
+    fetchFriendStatus,
+    sendRequest,
+    acceptRequest,
+    declineRequest,
+    cancelRequest
+  } = useFriendStore();
   const { user: me, updateUser } = useAuthStore();
   const { id } = useParams();
   const isOwnProfile = useMemo(() => me && String(me.id) === id, [me, id]);
@@ -22,8 +39,9 @@ const ProfilePage = () => {
     if (id) {
       fetchUserPosts(Number(id));
       fetchUserDetails(Number(id));
+      fetchFriendStatus(Number(id));
     }
-  }, [id, fetchUserPosts, fetchUserDetails]);
+  }, [id, fetchUserPosts, fetchUserDetails, fetchFriendStatus]);
 
   const handleSaveProfile = async (data: { username: string; password: string; profilePic: File | null }) => {
     if (!updateProfile) return;
@@ -73,14 +91,54 @@ const ProfilePage = () => {
               {isOwnProfile ? (
                 <button
                   onClick={() => setIsEditModalOpen(true)}
-                  className="bg-neutral-600/50 hover:bg-neutral-600 rounded-md px-4 py-1">
+                  className="bg-neutral-600/50 hover:bg-neutral-600 rounded-md px-3 py-2 flex items-center gap-1"
+                >
+                  {/* Edit icon */}
                   Edit
                 </button>
               ) : (
-                <button className="bg-[#1877F2] hover:bg-[#3a8cff] rounded-md px-4 py-1">
-                  Add Friend
-                </button>
+                <>
+                  {friendStatus === "friends" && (
+                    <button className="bg-neutral-700 rounded-md px-3 py-2">Friends</button>
+                  )}
+
+                  {friendStatus === "pending_incoming" && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => acceptRequest(Number(id))}
+                        className="bg-blue-600 hover:bg-blue-700 rounded-md px-3 py-2"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => declineRequest(Number(id))}
+                        className="bg-neutral-700 hover:bg-neutral-600 rounded-md px-3 py-2"
+                      >
+                        Decline
+                      </button>
+                    </div>
+                  )}
+
+                  {friendStatus === "pending_outgoing" && (
+                    <button
+                      onClick={() => cancelRequest(Number(id))} // cancel = decline
+                      className="bg-neutral-700 hover:bg-neutral-600 rounded-md px-3 py-2"
+                    >
+                      Cancel Request
+                    </button>
+                  )}
+
+                  {friendStatus === "none" && (
+                    <button
+                      onClick={() => sendRequest(Number(id))}
+                      className="bg-[#1877F2] hover:bg-[#3a8cff] rounded-md px-3 py-2"
+                    >
+                      Add Friend
+                    </button>
+                  )}
+                </>
               )}
+
             </div>
           </div>
 
