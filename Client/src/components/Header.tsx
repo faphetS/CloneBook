@@ -1,21 +1,14 @@
-import { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuthStore } from '../store/AuthStore';
-import type Tab from '../types/tab.type';
+import FriendReq from './FriendReq';
 import NotificationDropdown from './NotificationDropDown';
 
 
-// Move tabs outside the component to make them stable
-const tabs: Tab[] = [
-  { icon: <path d="M2.25 12L12 3l9.75 9H18v7.5a.75.75 0 01-.75.75H6.75a.75.75 0 01-.75-.75V12H2.25z" />, path: '/' },
-  { icon: <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />, path: '/profile' },
-];
 
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { logout, user } = useAuthStore();
 
   const handleLogout = async () => {
@@ -28,64 +21,42 @@ const Header: React.FC = () => {
     }
   };
 
-  const [active, setActive] = useState(0);
-
-  useEffect(() => {
-    let index = tabs.findIndex(tab => tab.path === location.pathname);
-
-    if (location.pathname === `/profile/${user?.id}`) {
-      index = tabs.findIndex(tab => tab.path === '/profile');
-    }
-    if (index !== -1) setActive(index);
-    else setActive(-1);
-  }, [location.pathname, user?.id]);
-
-  const handleClick = (tab: Tab) => {
-    if (tab.path === "/profile") {
-      navigate(`/profile/${user?.id}`);
-    } else {
-      navigate(tab.path);
-    }
-  };
-
-
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-neutral-900 px-4 flex justify-between items-center text-base">
-      <Link to="/">
-        <div className="min-w-[150px] font-bold cursor-pointer flex-shrink-0">CloneBook</div>
-      </Link>
 
-      <div className="w-[360px] min-w-[150px] flex items-center justify-around relative flex-shrink-0">
-        {tabs.map((tab, i) => (
-          <div
-            key={i}
-            className="group w-[120px] h-[64px] flex justify-center items-center cursor-pointer relative"
-            onClick={() => handleClick(tab)}
+      <div className="flex items-center gap-4 min-w-[250px] flex-shrink-0">
+        <Link to="/">
+          <div className="font-bold cursor-pointer">CloneBook</div>
+        </Link>
+        {/* Search Input */}
+        <div className="relative w-[240px]">
+          <input
+            type="text"
+            placeholder="Search CloneBook"
+            className="w-full bg-neutral-800 text-sm text-white rounded-full pl-10 pr-4 py-2 focus:outline-none"
+          />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
           >
-            {/* Blue border animation */}
-            <div
-              className={`absolute bottom-0 left-0 w-full h-1 transition-all duration-300 ${active === i ? 'bg-[#1877F2]' : 'bg-transparent'
-                }`}
-            ></div>
-            <div className="flex justify-center items-center group-hover:bg-neutral-700/50 w-[120px] h-12 rounded-lg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className={`size-6 transition-colors duration-300 ${active === i ? 'text-[#1877F2]' : 'text-neutral-400'
-                  }`}
-              >
-                {tab.icon}
-              </svg>
-            </div>
-          </div>
-        ))}
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1 0 5.25 
+                 5.25a7.5 7.5 0 0 0 11.5 11.5z"
+            />
+          </svg>
+        </div>
       </div>
 
-      <div className="min-w-[123px] w-[150px] justify-end flex gap-3 items-center relative flex-shrink-0 ">
 
+      <div className=" justify-end flex gap-2 items-center relative flex-shrink-0 ">
+
+        <FriendReq />
         <NotificationDropdown />
 
         <div className="relative w-11 h-11 group">

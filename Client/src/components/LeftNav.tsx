@@ -3,32 +3,50 @@ import { useAuthStore } from "../store/AuthStore";
 import AccountSettings from "./AccountSettings";
 const LeftNav = () => {
   const { user } = useAuthStore();
+
+
+  const isHome = location.pathname === "/";
+  const isProfile =
+    location.pathname === `/profile/${user?.id}` ||
+    location.pathname.startsWith("/profile");
+
   return (
     <nav className="hidden lg:block w-[360px] border-r border-neutral-900 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto p-1 font-medium">
 
-      <Link to={`/profile/${user?.id}`}>
-        <div className="flex items-center hover:bg-neutral-700/50 cursor-pointer rounded-lg my-1 px-1">
-          {user?.profilePic ? (
-            <div className="min-w-12 min-h-12 flex items-center justify-center mr-1">
-              <img
-                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${user.profilePic}`}
-                alt={`${user.username}'s profile`}
-                className="w-11 h-11 rounded-full object-cover"
-              />
-            </div>
-
-          ) : (
-            <div className="min-w-12 min-h-12 flex items-center justify-center mr-1">
-              <img
-                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
-                alt={`${user?.username}'s profile`}
-                className="w-11 h-11 rounded-full object-cover border-2 border-neutral-300"
-              />
-            </div>
-          )}
-          {user?.username}
+      <Link to={'/'}>
+        <div className={`flex items-center px-4 h-12 cursor-pointer rounded-lg mt-1 w-full text-left ${isHome ? "bg-neutral-700/40" : "hover:bg-neutral-700/50"}`}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            className={`w-7 h-7 mr-4 transition-colors duration-300 ${isHome ? "text-[#1877F2]" : "text-neutral-400"
+              }`}>
+            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+          </svg>
+          <p className={`${isHome ? "text-[#1877F2]" : "text-white"
+            }`}>Home</p>
         </div>
       </Link>
+
+      <Link to={`/profile/${user?.id}`}>
+        <div className={`flex items-center px-4 h-12 cursor-pointer rounded-lg mt-1 w-full text-left ${isProfile ? "bg-neutral-700/40" : "hover:bg-neutral-700/50"}`}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            className={`w-7 h-7 mr-4 transition-colors duration-300 ${isProfile ? "text-[#1877F2]" : "text-neutral-400"
+              }`}>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+          <p className={`${isProfile ? "text-[#1877F2]" : "text-white"
+            }`}>Profile</p>
+        </div>
+      </Link>
+
       <AccountSettings />
     </nav>
   )

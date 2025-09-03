@@ -42,7 +42,7 @@ const NotificationDropdown = () => {
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className={`size-9 transition-colors duration-100  rounded-3xl p-2 cursor-pointer ${open ? "bg-[#1877F2]/10 text-[#1877F2]" : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
+              className={`size-11 transition-colors duration-100  rounded-3xl p-2.5 cursor-pointer ${open ? "bg-[#1877F2]/10 text-[#1877F2]" : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
                 }`}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
@@ -78,7 +78,7 @@ const NotificationDropdown = () => {
                     <MenuItem
                       key={n.id}
                       as="div"
-                      className={`flex items-center gap-3 px-4 py-3 cursor-pointer 
+                      className={`flex items-top gap-3 px-4 py-3 cursor-pointer 
                       data-[focus]:bg-neutral-800/60
                       ${n.unread ? "bg-neutral-800/40" : ""}`}
                     >
@@ -97,7 +97,7 @@ const NotificationDropdown = () => {
                       )}
 
                       <div className="flex flex-col">
-                        <span className="text-sm">
+                        <span>
                           <span className="font-semibold">{n.senderName}</span> {n.text}
                         </span>
                         <span className="text-xs text-neutral-400">{formatShortTime(new Date(n.createdAt))}</span>
