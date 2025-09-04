@@ -25,6 +25,7 @@ export const getNotif = async (req: Request, res: Response) => {
         n.text, 
         n.unread, 
         n.created_at AS createdAt, 
+        n.sender_id AS senderId,
         u.username AS senderName,
         u.profile_pic AS profilePic
       FROM notifications n

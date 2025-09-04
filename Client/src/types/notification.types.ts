@@ -5,6 +5,7 @@ export interface Notification {
   unread: boolean;
   createdAt: string;
   senderName: string;
+  senderId: number;
   profilePic: string;
 }
 
