@@ -1,6 +1,7 @@
-import { Menu, MenuButton, MenuItem, Transition } from "@headlessui/react";
+import { Menu, MenuButton, Transition } from "@headlessui/react";
 import { motion } from "framer-motion";
 import { Fragment, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useNotificationStore } from "../store/notifStore";
 import { formatShortTime } from "../utils/time";
 
@@ -75,38 +76,44 @@ const NotificationDropdown = () => {
               <div className="max-h-[650px] overflow-y-auto custom-scrollbar">
                 {notifications.length > 0 ? (
                   notifications.map((n) => (
-                    <MenuItem
+                    <div
                       key={n.id}
-                      as="div"
-                      className={`flex items-top gap-3 px-4 py-3 cursor-pointer 
-                      data-[focus]:bg-neutral-800/60
-                      ${n.unread ? "bg-neutral-800/40" : ""}`}
+                      className={`flex items-start gap-3 px-4 py-3 cursor-pointer 
+    hover:bg-neutral-800/60
+    ${n.unread ? "bg-neutral-800/40" : ""}`}
                     >
-                      {n.profilePic ? (
+                      {/* Avatar + text */}
+                      <Link to={`/profile/${n.senderId}`} className="flex-shrink-0">
                         <img
-                          src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${n.profilePic}`}
+                          src={n.profilePic
+                            ? `${import.meta.env.VITE_API_DOMAIN}/uploads/${n.profilePic}`
+                            : `${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`
+                          }
                           alt={n.senderName}
                           className="w-11 h-11 rounded-full object-cover"
                         />
-                      ) : (
-                        <img
-                          src={`${import.meta.env.VITE_API_DOMAIN}/uploads/$user.svg`}
-                          alt={n.senderName}
-                          className="w-11 h-11 rounded-full object-cover"
-                        />
-                      )}
+                      </Link>
 
-                      <div className="flex flex-col">
+                      <div className="flex flex-col flex-1 min-w-0">
                         <span>
-                          <span className="font-semibold">{n.senderName}</span> {n.text}
+                          <Link to={`/profile/${n.senderId}`}>
+                            <span className="font-semibold hover:underline">{n.senderName} </span>
+                          </Link>
+                          <span className="font-thin break-words">{n.text}</span>
                         </span>
-                        <span className="text-xs text-neutral-400">{formatShortTime(new Date(n.createdAt))}</span>
+                        <span className="text-xs text-neutral-400">
+                          {formatShortTime(new Date(n.createdAt))}
+                        </span>
                       </div>
-                      {/* Unread blue dot */}
+
+                      {/* Dot */}
                       {!!n.unread && (
-                        <span className="ml-auto w-2 h-2 rounded-full bg-blue-500"></span>
+                        <div className="ml-auto my-auto flex items-center">
+                          <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                        </div>
                       )}
-                    </MenuItem>
+                    </div>
+
                   ))) : (
                   <div className="p-4 text-center text-neutral-400">
                     No notifications
