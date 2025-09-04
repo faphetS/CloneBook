@@ -1,7 +1,8 @@
-import { Menu, MenuButton, MenuItem, Transition } from "@headlessui/react";
+import { Menu, MenuButton, Transition } from "@headlessui/react";
 import { motion } from "framer-motion";
 import { Fragment, useEffect, useState } from "react";
-import { useFriendStore } from "../store/frienStore";
+import { Link } from "react-router-dom";
+import { useFriendStore } from "../store/friendStore";
 import { formatShortTime } from "../utils/time";
 
 
@@ -83,35 +84,41 @@ const FriendReq = () => {
                     const status = localStatus[req.senderId];
 
                     return (
-                      <MenuItem
-                        key={req.id}
-                        as="div"
-                        className="flex items-top gap-3 px-4 py-3 cursor-pointer data-[focus]:bg-neutral-800/60"
-                      >
-                        {req.senderProfilePic ? (
-                          <img
-                            src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${req.senderProfilePic}`}
-                            alt={req.senderName}
-                            className="w-11 h-11 rounded-full object-cover"
-                          />
-                        ) : (
-                          <img
-                            src={`${import.meta.env.VITE_API_DOMAIN}/uploads/$user.svg`}
-                            alt={req.senderName}
-                            className="w-11 h-11 rounded-full object-cover"
-                          />
-                        )}
 
-                        <div className="flex flex-col flex-1">
+                      <div
+                        key={req.id}
+                        className="flex items-top gap-3 px-4 py-3 cursor-pointer hover:bg-neutral-800/60"
+                      >
+                        <Link to={`/profile/${req.senderId}`} className="flex-shrink-0">
+                          {req.senderProfilePic ? (
+                            <img
+                              src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${req.senderProfilePic}`}
+                              alt={req.senderName}
+                              className="w-11 h-11 rounded-full object-cover"
+                            />
+                          ) : (
+                            <img
+                              src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
+                              alt={req.senderName}
+                              className="w-11 h-11 rounded-full object-cover"
+                            />
+                          )}
+                        </Link>
+
+                        <div className="flex flex-col flex-1 min-w-0">
                           <span>
-                            <span className="font-semibold">
-                              {req.senderName}
-                            </span>{" "}
-                            {status === "accepted"
-                              ? "You are now friends."
-                              : status === "declined"
-                                ? "Friend request declined."
-                                : "sent you a friend request."}
+                            <Link to={`/profile/${req.senderId}`}>
+                              <span className="font-semibold hover:underline">
+                                {req.senderName}
+                              </span>
+                            </Link>{" "}
+                            <span className="font-thin break-words">
+                              {status === "accepted"
+                                ? "You are now friends."
+                                : status === "declined"
+                                  ? "Friend request declined."
+                                  : "sent you a friend request."}
+                            </span>
                           </span>
                           <span className="text-xs text-neutral-400">
                             {formatShortTime(new Date(req.createdAt))}
@@ -121,7 +128,7 @@ const FriendReq = () => {
                             <div className="flex gap-2 mt-2">
                               <button
                                 onClick={() => handleAccept(req.senderId)}
-                                className="px-3 py-1 font-semibold bg-blue-600 rounded hover:bg-blue-700"
+                                className="px-3 py-1 font-semibold bg-[#1877F2] hover:bg-[#3a8cff] rounded"
                               >
                                 Accept
                               </button>
@@ -134,7 +141,7 @@ const FriendReq = () => {
                             </div>
                           )}
                         </div>
-                      </MenuItem>
+                      </div>
                     );
                   })
                 ) : (
