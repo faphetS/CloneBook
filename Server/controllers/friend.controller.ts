@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { RowDataPacket } from "mysql2";
 import { getDB } from "../config/db.js";
+import { createNotification } from "./notif.controller.js";
 
 
 export const sendFriendRequest = async (req: Request, res: Response) => {
@@ -59,6 +60,12 @@ export const acceptFriendRequest = async (req: Request, res: Response) => {
       req.user.userId,
       sender_id
     ]);
+    await createNotification(
+      sender_id,
+      req.user.userId,
+      "FriendAccept",
+      "accepted your friend request."
+    );
 
     res.json({ message: "Friend request accepted" });
   } catch (err) {

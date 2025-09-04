@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
-import { useAuthStore } from '../../store/AuthStore';
+import { useAuthStore } from '../../store/authStore';
 import type { RequireAuthProps } from '../../types/requireAuth.types';
 
 const RequireAuth = ({ children }: RequireAuthProps) => {
