@@ -13,7 +13,7 @@ export const useFriendStore = create<FriendStore>((set, get) => ({
   fetchFriends: async () => {
     set({ loading: true });
     try {
-      const res = await api.get("/friends"); // GET /friends
+      const res = await api.get("/friends");
       set({ friends: res.data, loading: false });
     } catch (err) {
       console.error(err);
