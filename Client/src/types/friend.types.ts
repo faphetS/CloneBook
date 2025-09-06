@@ -29,4 +29,5 @@ export type FriendStore = {
   acceptRequest: (senderId: number) => Promise<void>;
   declineRequest: (senderId: number) => Promise<void>;
   cancelRequest: (receiverId: number) => Promise<void>;
+  unfriend: (friendId: number) => Promise<void>;
 };
