@@ -8,6 +8,7 @@ export type CommentType = {
   created_at: string;
   likeCount: number;
   isLiked: boolean;
+  postOwnerId?: number;
 };
 
 export type CommentState = {
@@ -16,6 +17,7 @@ export type CommentState = {
   setComments: (postId: number, comments: CommentType[]) => void;
   fetchComments: (postId: number) => Promise<void>;
   addComment: (postId: number, comment: CommentType) => void;
+  deleteComment: (postId: number, commentId: number) => Promise<void>;
   toggleLike: (postId: number, commentId: number) => void;
 };
 
