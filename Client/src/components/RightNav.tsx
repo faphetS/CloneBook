@@ -14,9 +14,8 @@ const RightNav = () => {
 
       {friends.length > 0 ? (
         friends.map((f) => (
-          <Link to={`/profile/${f.id}`}>
+          <Link to={`/profile/${f.id}`} key={f.id}>
             <div
-              key={f.id}
               className="flex flex-row items-center hover:bg-neutral-700/50 cursor-pointer rounded-lg mt-1 px-2 py-2 gap-2">
               {f.profilePic ? (
                 <img

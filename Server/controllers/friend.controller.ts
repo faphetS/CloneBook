@@ -116,6 +116,29 @@ export const cancelFriendRequest = async (req: Request, res: Response) => {
   }
 };
 
+export const unfriendUser = async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+
+  const myId = req.user.userId;
+  const friendId = Number(req.params.friendId);
+  const query = `
+      DELETE FROM friends
+      WHERE (user_id = ? AND friend_id = ?)
+         OR (user_id = ? AND friend_id = ?)
+    `;
+
+
+  try {
+    const db = getDB();
+    const [result] = await db.execute(query, [myId, friendId, friendId, myId]);
+
+    res.status(204).send();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 export const getFriendRequests = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });

@@ -30,12 +30,14 @@ const ProfilePage = () => {
     sendRequest,
     acceptRequest,
     declineRequest,
-    cancelRequest
+    cancelRequest,
+    unfriend
   } = useFriendStore();
   const { user: me, updateUser } = useAuthStore();
   const { id } = useParams();
   const isOwnProfile = useMemo(() => me && String(me.id) === id, [me, id]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
 
   useEffect(() => {
     if (id) {
@@ -122,16 +124,42 @@ const ProfilePage = () => {
               ) : (
                 <>
                   {friendStatus === "friends" && (
-                    <button className="bg-neutral-700 rounded-md px-3 py-2 flex gap-1 items-center font-semibold">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 640 640"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="size-4 fill-white">
-                        <path d="M96 192C96 130.1 146.1 80 208 80C269.9 80 320 130.1 320 192C320 253.9 269.9 304 208 304C146.1 304 96 253.9 96 192zM32 528C32 430.8 110.8 352 208 352C305.2 352 384 430.8 384 528L384 534C384 557.2 365.2 576 342 576L74 576C50.8 576 32 557.2 32 534L32 528zM464 128C517 128 560 171 560 224C560 277 517 320 464 320C411 320 368 277 368 224C368 171 411 128 464 128zM464 368C543.5 368 608 432.5 608 512L608 534.4C608 557.4 589.4 576 566.4 576L421.6 576C428.2 563.5 432 549.2 432 534L432 528C432 476.5 414.6 429.1 385.5 391.3C408.1 376.6 435.1 368 464 368z" />
-                      </svg>
-                      Friends</button>
+                    <button
+                      onClick={() => unfriend(Number(id))}
+                      className="group bg-neutral-700 transition-colors hover:bg-red-600 hover:text-xs hover:py-2.5 rounded-md px-3 py-2 flex gap-1 items-center font-semibold relative">
+                      {/* Default (Friends) */}
+                      <span className="flex gap-1 items-center group-hover:hidden">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 640 640"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="size-4 fill-white"
+                        >
+                          <path d="M96 192C96 130.1 146.1 80 208 80C269.9 80 320 130.1 320 192C320 253.9 269.9 304 208 304C146.1 304 96 253.9 96 192zM32 528C32 430.8 110.8 352 208 352C305.2 352 384 430.8 384 528L384 534C384 557.2 365.2 576 342 576L74 576C50.8 576 32 557.2 32 534L32 528zM464 128C517 128 560 171 560 224C560 277 517 320 464 320C411 320 368 277 368 224C368 171 411 128 464 128zM464 368C543.5 368 608 432.5 608 512L608 534.4C608 557.4 589.4 576 566.4 576L421.6 576C428.2 563.5 432 549.2 432 534L432 528C432 476.5 414.6 429.1 385.5 391.3C408.1 376.6 435.1 368 464 368z" />
+                        </svg>
+                        Friends
+                      </span>
+
+                      <span
+                        className="flex gap-1 items-center hidden group-hover:flex">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="size-4"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z"
+                          />
+                        </svg>
+                        Unfriend
+                      </span>
+                    </button>
                   )}
 
                   {friendStatus === "pending_incoming" && (
@@ -212,117 +240,3 @@ const ProfilePage = () => {
 }
 
 export default ProfilePage
-
-
-// {/* image-posting */ }
-// <div className="bg-neutral-900 w-full flex flex-col items-center rounded-2xl px-3 pt-3 gap-3">
-//   <div className="w-full min-h-12 flex items-center gap-3">
-//     <svg
-//       xmlns="http://www.w3.org/2000/svg"
-//       fill="none"
-//       viewBox="0 0 24 24"
-//       strokeWidth={1.5}
-//       stroke="currentColor"
-//       className="w-12 h-12 text-neutral-400 shrink-0"
-//     >
-//       <path
-//         strokeLinecap="round"
-//         strokeLinejoin="round"
-//         d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488
-//                 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963
-//                 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966
-//                 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0
-//                 3 3 0 0 1 6 0Z"
-//       />
-//     </svg>
-//     <textarea
-//       ref={textareaRef}
-//       onInput={handleInput}
-//       rows={1}
-//       placeholder="What's on your mind, Justin?"
-//       className="w-full bg-neutral-700/30 rounded-2xl px-3 py-3 text-white focus:outline-none focus:ring-1 focus:ring-[#1877F2] placeholder:text-neutral-400 overflow-y-hidden"
-//     />
-//   </div>
-//   <button className="max-w-[590px] w-full h-[100px] bg-neutral-800 flex items-center justify-center text-neutral-300 hover:bg-neutral-700 hover:text-white transition duration-100">
-//     Add Photo
-//   </button>
-//   <div className="flex justify-around items-center border-t border-neutral-700 w-full py-2">
-//     <button className="hover:bg-red-500  hover:text-white px-12 py-2 rounded-xl cursor-pointer text-neutral-300 font-semimbold transition duration-100">Cancel</button>
-//     <button className="hover:bg-[#1877F2] hover:text-white px-12 py-2 rounded-xl cursor-pointer text-neutral-300 font-semimbold transition duration-100">Post</button>
-//   </div>
-
-// </div>
-// {/* post w/image*/ }
-// <div className="bg-neutral-900 w-full flex flex-col items-center rounded-2xl px-3 pt-3 gap-3">
-//   <div className="w-full min-h-12 flex items-center gap-3">
-//     <svg
-//       xmlns="http://www.w3.org/2000/svg"
-//       fill="none"
-//       viewBox="0 0 24 24"
-//       strokeWidth={1.5}
-//       stroke="currentColor"
-//       className="w-12 h-12 text-neutral-400 shrink-0"
-//     >
-//       <path
-//         strokeLinecap="round"
-//         strokeLinejoin="round"
-//         d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488
-//                 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963
-//                 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966
-//                 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0
-//                 3 3 0 0 1 6 0Z"
-//       />
-//     </svg>
-//     <div className="flex flex-col">
-//       <p>Justin Garcia</p>
-//       <p className="text-neutral-400 text-xs">1h</p>
-//     </div>
-//   </div>
-//   <div className="max-w-[590px] w-full h-[590px] bg-neutral-800 flex items-center justify-center">
-//     asd
-//   </div>
-//   <div className="flex justify-around items-center border-t border-neutral-700 w-full py-2">
-//     <button className="hover:bg-neutral-700/50  hover:text-white w-full py-2 rounded-md cursor-pointer text-neutral-300 font-semimbold transition duration-100">Like</button>
-//     <button className="hover:bg-neutral-700/50 hover:text-white w-full py-2 rounded-md cursor-pointer text-neutral-300 font-semimbold transition duration-100">Comment</button>
-//   </div>
-
-// </div>
-// {/* post text only*/ }
-// <div className="bg-neutral-900 w-full flex flex-col items-center rounded-2xl px-3 pt-3 gap-3">
-//   <div className="w-full min-h-12 flex items-center gap-3">
-//     <svg
-//       xmlns="http://www.w3.org/2000/svg"
-//       fill="none"
-//       viewBox="0 0 24 24"
-//       strokeWidth={1.5}
-//       stroke="currentColor"
-//       className="w-12 h-12 text-neutral-400 shrink-0"
-//     >
-//       <path
-//         strokeLinecap="round"
-//         strokeLinejoin="round"
-//         d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488
-//                 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963
-//                 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966
-//                 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0
-//                 3 3 0 0 1 6 0Z"
-//       />
-//     </svg>
-//     <div className="flex flex-col">
-//       <p>Justin Garcia</p>
-//       <p className="text-neutral-400 text-xs">1h</p>
-//     </div>
-//   </div>
-//   <p className="text-white text-base whitespace-pre-wrap break-words max-w-[590px] w-full">
-//     Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus tenetur cum libero molestias quo ut deleniti odio dignissimos, vel ab nulla eligendi dolor eius voluptatibus omnis earum ducimus optio consequuntur.
-//   </p>
-//   <div className="flex justify-around items-center border-t border-neutral-700 w-full py-2">
-//     <button className="hover:bg-neutral-700/50  hover:text-white w-full py-2 rounded-md cursor-pointer text-neutral-300 font-semimbold transition duration-100">Like</button>
-//     <button className="hover:bg-neutral-700/50 hover:text-white w-full py-2 rounded-md cursor-pointer text-neutral-300 font-semimbold transition duration-100">Comment</button>
-//   </div>
-
-// </div>
-// {/* Loading */ }
-// <div className="bg-neutral-900 flex items-center justify-center w-full h-[125px] rounded-2xl">
-//   <div className="bg-transparent w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
-// </div>

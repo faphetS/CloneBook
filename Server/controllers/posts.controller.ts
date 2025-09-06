@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
+import { RowDataPacket } from "mysql2";
 import { getDB } from "../config/db.js";
 import { createNotification } from "./notif.controller.js";
+
 
 
 export const createPost = async (req: Request, res: Response) => {
@@ -272,3 +274,72 @@ export const postComment = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to add comment" });
   }
 };
+
+export const deletePost = async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const postId = parseInt(req.params.postId, 10);
+  const userId: number = req.user.userId;
+
+  const selectQuery = "SELECT fk_u_id FROM posts WHERE id = ?";
+  const deleteQuery = "DELETE FROM posts WHERE id = ?";
+
+  try {
+    const db = getDB();
+
+    const [rows]: any = await db.execute(selectQuery, [postId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    if (rows[0].fk_u_id !== userId) {
+      return res.status(403).json({ message: "Forbidden: Not your post" });
+    }
+
+    await db.execute(deleteQuery, [postId]);
+
+    res.status(200).json({ success: true, message: "Post deleted" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const deleteComment = async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const { commentId } = req.params;
+  const selectQuery = `
+    SELECT 
+      fk_p_id AS postId, 
+      fk_u_id AS userId
+    FROM comments 
+    WHERE id = ?
+    LIMIT 1
+  `;
+  const selectQuery2 = "SELECT fk_u_id AS userId FROM posts WHERE id = ?";
+  const deleteQuery = "DELETE FROM comments WHERE id = ?";
+
+  try {
+    const db = getDB();
+    const [rows] = await db.execute<RowDataPacket[]>(selectQuery, [commentId]);
+    const comment = rows[0];
+
+    if (!comment) return res.sendStatus(404);
+
+    const [postRows] = await db.execute<RowDataPacket[]>(selectQuery2, [comment.postId]);
+    const postOwnerId = postRows[0]?.userId;
+
+    if (comment.userId !== req.user.userId && postOwnerId !== req.user.userId) {
+      return res.sendStatus(403);
+    }
+
+    await db.execute(deleteQuery, [commentId]);
+    res.sendStatus(204);
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+};
+

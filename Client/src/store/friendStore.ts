@@ -115,4 +115,17 @@ export const useFriendStore = create<FriendStore>((set, get) => ({
     }
   },
 
+  unfriend: async (friendId: number) => {
+    set({ friendStatus: "none" });
+
+    try {
+      await api.delete(`/friends/${friendId}`);
+      await get().fetchFriends();
+      await get().fetchFriendCount(friendId);
+    } catch (err) {
+      console.error(err);
+      set({ friendStatus: "friends" });
+    }
+  },
+
 }));

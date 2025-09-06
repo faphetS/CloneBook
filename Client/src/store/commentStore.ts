@@ -54,6 +54,22 @@ export const useCommentStore = create<CommentState>((set, get) => ({
     }));
   },
 
+  deleteComment: async (postId: number, commentId: number) => {
+    try {
+      await api.delete(`/content/comment/${commentId}`);
+      set((state) => ({
+        comments: {
+          ...state.comments,
+          [postId]: (state.comments[postId] || []).filter(
+            (c) => c.id !== commentId
+          ),
+        },
+      }));
+    } catch (err) {
+      console.error(err);
+    }
+  },
+
   toggleLike: (postId: number, commentId: number) => {
     set((state) => ({
       comments: {

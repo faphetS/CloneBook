@@ -17,6 +17,7 @@ export interface PostState {
   fetchPosts: () => Promise<void>;
   fetchUserPosts: (userId: number) => Promise<void>;
   addPost: (post: PostType) => void;
+  deletePost: (postId: number) => Promise<void>;
   toggleLike: (postId: number) => void;
   updatePost: (postId: number, data: Partial<PostType>) => void;
 }

@@ -44,31 +44,37 @@ const ProfileDropDown = () => {
         {() => (
           <>
             {/* Profile Button */}
-            <MenuButton className="relative flex items-center focus:outline-none focus:ring-0">
-              {user?.profilePic ? (
+            <MenuButton className="relative flex items-center focus:outline-none focus:ring-0 group">
+              <div className="relative">
                 <img
-                  src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${user.profilePic}`}
-                  alt={`${user.username}'s profile`}
+                  src={
+                    user?.profilePic
+                      ? `${import.meta.env.VITE_API_DOMAIN}/uploads/${user.profilePic}`
+                      : `${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`
+                  }
+                  alt={`${user?.username}'s profile`}
                   className="w-11 h-11 rounded-full object-cover"
                 />
-              ) : (
-                <img
-                  src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
-                  alt={`${user?.username}'s profile`}
-                  className="w-11 h-11 rounded-full object-cover border-2 border-neutral-300"
-                />
-              )}
+                {/* Shine Overlay */}
+                <div className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </div>
+
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
                 stroke="currentColor"
-                className="size-4 absolute -bottom-1 right-0 bg-neutral-900 text-white rounded-full"
+                className="size-4 absolute -bottom-1 right-0 bg-neutral-900 text-neutral-400 rounded-full"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                />
               </svg>
             </MenuButton>
+
 
             {/* Dropdown Panel */}
             <Transition
@@ -94,10 +100,10 @@ const ProfileDropDown = () => {
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
-                      stroke-width="1.5"
+                      strokeWidth="1.5"
                       stroke="currentColor"
                       className="size-9 p-1 transition-colors duration-300 bg-neutral-800 text-neutral-400 rounded-full">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                     </svg>
                     Profile
                   </MenuItem>
