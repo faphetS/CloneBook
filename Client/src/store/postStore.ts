@@ -50,6 +50,17 @@ export const usePostStore = create<PostState>((set) => ({
       ...state.posts],
     })),
 
+  deletePost: async (postId: number) => {
+    try {
+      await api.delete(`/content/post/${postId}`);
+      set((state) => ({
+        posts: state.posts.filter((p) => p.id !== postId),
+      }));
+    } catch (err) {
+      console.error(err);
+    }
+  },
+
   toggleLike: (postId) =>
     set((state) => ({
       posts: state.posts.map((p) =>
@@ -69,7 +80,6 @@ export const usePostStore = create<PostState>((set) => ({
         p.id === postId ? { ...p, ...data } : p
       ),
     })),
-
 
 }));
 
