@@ -74,7 +74,7 @@ const NotificationDropdown = () => {
               transition={{ duration: 0.15 }}
               className="absolute -right-12 mt-3 w-80 bg-neutral-900 text-white rounded-xl shadow-lg overflow-hidden"
             >
-              <div className="max-h-[650px] overflow-y-auto custom-scrollbar">
+              <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
                 {notifications.length > 0 ? (
                   notifications.map((n) => (
                     <div

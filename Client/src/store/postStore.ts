@@ -3,20 +3,30 @@ import api from "../api/axios";
 import type { PostState, PostType } from "../types/post.types";
 
 
-export const usePostStore = create<PostState>((set) => ({
+export const usePostStore = create<PostState>((set, get) => ({
   posts: [],
   loading: true,
+  offset: 0,
+  limit: 10,
+
   setPosts: (posts) => set({ posts }),
+  resetPosts: () => set({ posts: [], offset: 0 }),
 
   fetchPosts: async () => {
+    const { offset, limit, posts } = get();
     set({ loading: true });
+
     try {
-      const res = await api.get("/content");
-      const posts: PostType[] = res.data.map((p: PostType) => ({
+      const res = await api.get(`/content?offset=${offset}&limit=${limit}`);
+      const newPosts: PostType[] = res.data.map((p: PostType) => ({
         ...p,
         isLiked: Boolean(p.isLiked),
       }));
-      set({ posts });
+
+      set({
+        posts: [...posts, ...newPosts],
+        offset: offset + newPosts.length,
+      });
     } catch (err) {
       console.error(err);
     } finally {

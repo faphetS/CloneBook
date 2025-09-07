@@ -210,6 +210,7 @@ const ProfilePage = () => {
 
             </div>
           </div>
+          <div className="w-full text-neutral-900 flex items-center justify-center -mt-5 -mb-2 font-bold">POSTS</div>
 
           {isOwnProfile && (
             <Poster />
@@ -219,9 +220,14 @@ const ProfilePage = () => {
             <div className="bg-neutral-900 flex items-center justify-center w-full h-[125px] rounded-2xl">
               <div className="bg-transparent w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
             </div>
+          ) : posts.length < 1 ? (
+            <div className="bg-neutral-900 flex items-center justify-center w-full h-[125px] rounded-2xl text-gray-400">
+              Nothing to see here… yet!
+            </div>
           ) : (
             posts.map((p) => <Post key={p.id} {...p} />)
           )}
+
 
         </div>
         <RightNav />
