@@ -42,6 +42,10 @@ export const getPosts = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+
+  const limit = Number(req.query.limit) || 10;
+  const offset = Number(req.query.offset) || 0;
+
   const query = `
   SELECT 
     posts.id, 
@@ -58,13 +62,13 @@ export const getPosts = async (req: Request, res: Response) => {
   LEFT JOIN likes ON posts.id = likes.fk_p_id
   GROUP BY posts.id, posts.content, posts.created_at, users.id, users.username 
   ORDER BY posts.created_at DESC
+   LIMIT ? OFFSET ?
 `;
   try {
     const db = getDB();
-    const [rows] = await db.execute(query, [req.user.userId]);
+    const [rows] = await db.query(query, [req.user.userId, limit, offset]);
     res.json(rows);
   } catch (error: any) {
-    console.log("Error fetching posts:", error.message || error);
     res.status(500).json({ error: "Failed to fetch posts" });
   }
 }

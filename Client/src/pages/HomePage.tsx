@@ -8,10 +8,28 @@ import { usePostStore } from "../store/postStore";
 
 
 const HomePage = () => {
-  const { posts, loading, fetchPosts } = usePostStore();
+  const { posts, loading, fetchPosts, resetPosts } = usePostStore();
+
+
   useEffect(() => {
+    resetPosts();
     fetchPosts();
-  }, [fetchPosts]);
+  }, [resetPosts, fetchPosts]);
+
+  useEffect(() => {
+    const handleScroll = async () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop + 1 >= document.documentElement.scrollHeight
+      ) {
+        if (!loading) {
+          await fetchPosts();
+        }
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [loading, fetchPosts]);
 
   return (
     <>
@@ -23,14 +41,13 @@ const HomePage = () => {
           {/* whats on your mind */}
           <Poster />
 
-          {loading ? (
-            // loading
+          {posts.map((p) => <Post key={p.id} {...p} />)}
+          {loading && (
             <div className="bg-neutral-900 flex items-center justify-center w-full h-[125px] rounded-2xl">
               <div className="bg-transparent w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
             </div>
-          ) : (
-            posts.map((p) => <Post key={p.id} {...p} />)
           )}
+
         </div>
         <RightNav />
       </main>

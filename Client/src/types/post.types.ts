@@ -13,7 +13,10 @@ export interface PostType {
 export interface PostState {
   posts: PostType[];
   loading: boolean;
+  offset: number;
+  limit: number;
   setPosts: (posts: PostType[]) => void;
+  resetPosts: () => void;
   fetchPosts: () => Promise<void>;
   fetchUserPosts: (userId: number) => Promise<void>;
   addPost: (post: PostType) => void;
