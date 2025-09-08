@@ -53,7 +53,7 @@ const ProfileDropDown = () => {
                       : `${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`
                   }
                   alt={`${user?.username}'s profile`}
-                  className="w-11 h-11 rounded-full object-cover"
+                  className={`w-11 h-11 rounded-full object-cover ${user?.profilePic ? ("") : ("border border-neutral-800")}`}
                 />
                 {/* Shine Overlay */}
                 <div className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>

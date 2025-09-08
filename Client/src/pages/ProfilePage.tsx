@@ -20,7 +20,9 @@ const ProfilePage = () => {
   const {
     posts,
     loading,
-    fetchUserPosts
+    hasMore,
+    fetchUserPosts,
+    resetPosts
   } = usePostStore();
   const {
     friendStatus,
@@ -41,12 +43,28 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (id) {
+      resetPosts();
       fetchUserPosts(Number(id));
       fetchUserDetails(Number(id));
       fetchFriendStatus(Number(id));
       fetchFriendCount(Number(id));
     }
-  }, [id, fetchUserPosts, fetchUserDetails, fetchFriendStatus, fetchFriendCount]);
+  }, [id, resetPosts, fetchUserPosts, fetchUserDetails, fetchFriendStatus, fetchFriendCount]);
+
+  useEffect(() => {
+    const handleScroll = async () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop + 1 >= document.documentElement.scrollHeight
+      ) {
+        if (!loading) {
+          await fetchUserPosts(Number(id));
+        }
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [id, loading, fetchUserPosts]);
 
   const handleSaveProfile = async (data: { username: string; password: string; profilePic: File | null }) => {
     if (!updateProfile) return;
@@ -84,7 +102,7 @@ const ProfilePage = () => {
                 <img
                   src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
                   alt={`${profile?.username}'s profile`}
-                  className="w-[162px] h-[162px] rounded-full object-cover border-2 border-neutral-300"
+                  className="w-[162px] h-[162px] rounded-full object-cover border-2 border-neutral-900"
                 />
               </div>
             )}
@@ -216,16 +234,20 @@ const ProfilePage = () => {
             <Poster />
           )}
 
-          {loading ? (
+          {posts.map((p) => <Post key={p.id} {...p} />)}
+
+          {!loading && !posts.length && (
+            <div className="text-neutral-400 py-6">Nothing to see here... yet!</div>
+          )}
+
+          {!loading && posts.length > 0 && !hasMore && (
+            <div className="text-neutral-500 py-6">You’ve reached the end!</div>
+          )}
+
+          {loading && (
             <div className="bg-neutral-900 flex items-center justify-center w-full h-[125px] rounded-2xl">
               <div className="bg-transparent w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
             </div>
-          ) : posts.length < 1 ? (
-            <div className="bg-neutral-900 flex items-center justify-center w-full h-[125px] rounded-2xl text-gray-400">
-              Nothing to see here… yet!
-            </div>
-          ) : (
-            posts.map((p) => <Post key={p.id} {...p} />)
           )}
 
 

@@ -14,8 +14,19 @@ export type CommentType = {
 export type CommentState = {
   comments: Record<number, CommentType[]>;
   loading: Record<number, boolean>;
-  setComments: (postId: number, comments: CommentType[]) => void;
-  fetchComments: (postId: number) => Promise<void>;
+  loadingMore: Record<number, boolean>;
+  offsets: Record<number, number>;
+  limits: Record<number, number>;
+  hasMore: Record<number, boolean>;
+
+  setComments: (
+    postId: number,
+    newComments: CommentType[],
+    offset: number,
+    limit: number
+  ) => void;
+  resetComments: (postId: number) => void;
+  fetchComments: (postId: number, loadMore?: boolean) => Promise<void>;
   addComment: (postId: number, comment: CommentType) => void;
   deleteComment: (postId: number, commentId: number) => Promise<void>;
   toggleLike: (postId: number, commentId: number) => void;

@@ -17,21 +17,19 @@ const RightNav = () => {
           <Link to={`/profile/${f.id}`} key={f.id}>
             <div
               className="flex flex-row items-center hover:bg-neutral-700/50 cursor-pointer rounded-lg mt-1 px-2 py-2 gap-2">
-              {f.profilePic ? (
-                <img
-                  src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${f.profilePic}`}
-                  alt={f.username}
-                  className="w-11 h-11 rounded-full object-cover"
-                />
-              ) : (
-                <img
-                  src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
-                  alt={f.username}
-                  className="w-11 h-11 rounded-full object-cover mr-1"
-                />
-              )}
+              <img
+                src={
+                  f.profilePic
+                    ? `${import.meta.env.VITE_API_DOMAIN}/uploads/${f.profilePic}`
+                    : `${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`
+                }
+                alt={`${f.username}'s profile`}
+                className={`w-11 h-11 rounded-full object-cover ${f.profilePic ? ("") : ("border border-neutral-900")}`}
+              />
               {f.username}
             </div>
+
+
           </Link>
         ))
       ) :

@@ -100,7 +100,7 @@ const FriendReq = () => {
                             <img
                               src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
                               alt={req.senderName}
-                              className="w-11 h-11 rounded-full object-cover"
+                              className={`w-11 h-11 rounded-full object-cover ${req.senderProfilePic ? ("") : ("border border-neutral-800")}`}
                             />
                           )}
                         </Link>

@@ -50,7 +50,7 @@ const CommentInput = ({ id }: { id: number }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="pb-2 py-2 -mt-3 w-full flex flex-col"
+      className="pb-1 pt-4 -mt-3 w-full flex flex-col"
     >
       <div className="w-full min-h-12 flex items-center gap-3">
         <Link to={`/profile/${user?.id}`}>

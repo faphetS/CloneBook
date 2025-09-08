@@ -8,12 +8,14 @@ export const usePostStore = create<PostState>((set, get) => ({
   loading: true,
   offset: 0,
   limit: 10,
+  hasMore: true,
 
   setPosts: (posts) => set({ posts }),
-  resetPosts: () => set({ posts: [], offset: 0 }),
+  resetPosts: () => set({ posts: [], offset: 0, hasMore: true }),
 
   fetchPosts: async () => {
-    const { offset, limit, posts } = get();
+    const { offset, limit, posts, hasMore } = get();
+    if (!hasMore) return;
     set({ loading: true });
 
     try {
@@ -26,6 +28,7 @@ export const usePostStore = create<PostState>((set, get) => ({
       set({
         posts: [...posts, ...newPosts],
         offset: offset + newPosts.length,
+        hasMore: newPosts.length === limit,
       });
     } catch (err) {
       console.error(err);
@@ -35,14 +38,20 @@ export const usePostStore = create<PostState>((set, get) => ({
   },
 
   fetchUserPosts: async (userId: number) => {
+    const { offset, limit, posts, hasMore } = get();
+    if (!hasMore) return;
     set({ loading: true });
     try {
-      const res = await api.get(`/content/${userId}`);
-      const posts: PostType[] = res.data.map((p: PostType) => ({
+      const res = await api.get(`/content/${userId}?offset=${offset}&limit=${limit}`);
+      const newPosts: PostType[] = res.data.map((p: PostType) => ({
         ...p,
         isLiked: Boolean(p.isLiked),
       }));
-      set({ posts });
+      set({
+        posts: [...posts, ...newPosts],
+        offset: offset + newPosts.length,
+        hasMore: newPosts.length === limit,
+      });
     } catch (err) {
       console.error(err);
     } finally {

@@ -48,7 +48,7 @@ const PostComment = ({ id, postId, userId, username, profilePic, created_at, con
                 <img
                   src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
                   alt={`${username}'s profile`}
-                  className="w-11 h-11 rounded-full object-cover border-2 border-neutral-300"
+                  className="w-11 h-11 rounded-full object-cover border-2 border-neutral-800"
                 />
               </div>
             )}

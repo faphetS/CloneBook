@@ -14,7 +14,7 @@ import PostComment from "./PostComment";
 const Post = ({ id, userId, username, content, profilePic, created_at, likeCount, isLiked, commentCount }: PostType) => {
   const { toggleLike, deletePost } = usePostStore();
 
-  const { comments, fetchComments, loading } = useCommentStore();
+  const { comments, fetchComments, resetComments, loading, loadingMore, hasMore } = useCommentStore();
   const [toggleComment, setToggleComment] = useState(false);
   const { user } = useAuthStore();
 
@@ -30,9 +30,10 @@ const Post = ({ id, userId, username, content, profilePic, created_at, likeCount
 
   useEffect(() => {
     if (toggleComment) {
+      resetComments(id);
       fetchComments(id);
     }
-  }, [toggleComment, id, fetchComments]);
+  }, [toggleComment, id, resetComments, fetchComments]);
   return (
     <div className="bg-neutral-900 w-full flex flex-col items-center rounded-2xl px-3 pt-3 gap-3 relative group">
 
@@ -52,7 +53,7 @@ const Post = ({ id, userId, username, content, profilePic, created_at, likeCount
               <img
                 src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
                 alt={`${username}'s profile`}
-                className="w-11 h-11 rounded-full object-cover border-2 border-neutral-300"
+                className="w-11 h-11 rounded-full object-cover border-2 border-neutral-800"
               />
             </div>
           )}
@@ -143,23 +144,37 @@ const Post = ({ id, userId, username, content, profilePic, created_at, likeCount
         </button>
       </div>
       {toggleComment && (
-        <div className="w-full max-w-[640px]">
+        <div className="w-full">
           {loading[id] ? (
             <p className="text-neutral-400 text-sm p-2">Loading comments...</p>
           ) : (
             <>
-              {(comments[id] || []).map((c) => (
-                <PostComment
-                  key={c.id}
-                  {...c}
-                  postOwnerId={userId}
-                />
-              ))}
+              <div className="max-h-[400px] overflow-y-auto overflow-x-hidden pt-1 pr-2 custom-scrollbar">
+                {(comments[id] || []).map((c) => (
+                  <PostComment
+                    key={c.id}
+                    {...c}
+                    postOwnerId={userId}
+                  />
+                ))}
+                {hasMore[id] && (
+                  <button
+                    onClick={() => fetchComments(id, true)}
+                    disabled={loadingMore[id]}
+                    className="ml-2 mb-1 text-neutral-400 hover:underline disabled:opacity-50"
+                  >
+                    {loadingMore[id] ? "Loading..." : "Load more comments"}
+                  </button>
+                )}
+              </div>
+
+
               <CommentInput id={id} />
             </>
           )}
         </div>
       )}
+
 
     </div>
   )

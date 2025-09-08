@@ -5,37 +5,78 @@ import type { CommentState, CommentType } from "../types/comment.types";
 export const useCommentStore = create<CommentState>((set, get) => ({
   comments: {},
   loading: {},
+  loadingMore: {},
+  offsets: {},
+  limits: {},
+  hasMore: {},
 
-  setComments: (postId: number, comments: CommentType[]) => {
+  setComments: (
+    postId: number,
+    newComments: CommentType[],
+    offset: number,
+    limit: number
+  ) => {
     set((state) => ({
       comments: {
         ...state.comments,
-        [postId]: comments,
+        [postId]: [...(state.comments[postId] || []), ...newComments],
+      },
+      offsets: {
+        ...state.offsets,
+        [postId]: offset + newComments.length,
+      },
+      hasMore: {
+        ...state.hasMore,
+        [postId]: newComments.length === limit,
       },
     }));
   },
 
-
-  fetchComments: async (postId: number) => {
-    if (get().loading[postId]) return; // prevent duplicate requests
+  resetComments: (postId: number) => {
     set((state) => ({
-      loading: { ...state.loading, [postId]: true },
+      comments: { ...state.comments, [postId]: [] },
+      offsets: { ...state.offsets, [postId]: 0 },
+      hasMore: { ...state.hasMore, [postId]: true },
     }));
+  },
+
+  fetchComments: async (postId: number, loadMore = false) => {
+    const { offsets, hasMore, limits } = get();
+    const offset = offsets[postId] ?? 0;
+    const limit = limits[postId] ?? 5;
+
+    if (hasMore[postId] === false) return;
+
+    if (loadMore) {
+      set((state) => ({
+        loadingMore: { ...state.loadingMore, [postId]: true },
+      }));
+    } else {
+      set((state) => ({
+        loading: { ...state.loading, [postId]: true },
+      }));
+    }
 
     try {
-      const res = await api.get(`/content/post/${postId}/comments`);
-      const comments: CommentType[] = res.data.map((c: CommentType) => ({
+      const res = await api.get(`/content/post/${postId}/comments?offset=${offset}&limit=${limit}`);
+      const newComments: CommentType[] = res.data.map((c: CommentType) => ({
         ...c,
         isLiked: Boolean(c.isLiked),
         likeCount: c.likeCount ?? 0,
       }));
-      get().setComments(postId, comments);
+      get().setComments(postId, newComments, offset, limit);
     } catch (err) {
       console.error(err);
     } finally {
-      set((state) => ({
-        loading: { ...state.loading, [postId]: false },
-      }));
+      if (loadMore) {
+        set((state) => ({
+          loadingMore: { ...state.loadingMore, [postId]: false },
+        }));
+      } else {
+        set((state) => ({
+          loading: { ...state.loading, [postId]: false },
+        }));
+      }
     }
   },
 
@@ -49,7 +90,7 @@ export const useCommentStore = create<CommentState>((set, get) => ({
     set((state) => ({
       comments: {
         ...state.comments,
-        [postId]: [...(state.comments[postId] ?? []), formatted],
+        [postId]: [formatted, ...(state.comments[postId] ?? [])],
       },
     }));
   },
@@ -74,18 +115,18 @@ export const useCommentStore = create<CommentState>((set, get) => ({
     set((state) => ({
       comments: {
         ...state.comments,
-        [postId]: (state.comments[postId] || []).map((c) =>
-          c.id === commentId
-            ? {
-              ...c,
-              isLiked: !c.isLiked,
-              likeCount: c.isLiked ? c.likeCount - 1 : c.likeCount + 1,
-            }
-            : c
-        ),
+        [postId]: (state.comments[postId] || []).map((c) => {
+          if (c.id !== commentId) return c;
+          const nextLiked = !c.isLiked;
+          return {
+            ...c,
+            isLiked: nextLiked,
+            likeCount: nextLiked ? c.likeCount + 1 : c.likeCount - 1,
+          };
+        }),
       },
     }));
-  }
+  },
 
 
 }));
