@@ -15,6 +15,7 @@ export interface PostState {
   loading: boolean;
   offset: number;
   limit: number;
+  hasMore: boolean;
   setPosts: (posts: PostType[]) => void;
   resetPosts: () => void;
   fetchPosts: () => Promise<void>;
