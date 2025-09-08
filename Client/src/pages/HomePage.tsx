@@ -8,7 +8,7 @@ import { usePostStore } from "../store/postStore";
 
 
 const HomePage = () => {
-  const { posts, loading, fetchPosts, resetPosts } = usePostStore();
+  const { posts, loading, hasMore, fetchPosts, resetPosts } = usePostStore();
 
 
   useEffect(() => {
@@ -42,6 +42,14 @@ const HomePage = () => {
           <Poster />
 
           {posts.map((p) => <Post key={p.id} {...p} />)}
+          {!loading && !posts.length && (
+            <div className="text-neutral-400 py-6">No posts yet...</div>
+          )}
+
+          {!loading && posts.length > 0 && !hasMore && (
+            <div className="text-neutral-500 py-6">You’ve reached the end!</div>
+          )}
+
           {loading && (
             <div className="bg-neutral-900 flex items-center justify-center w-full h-[125px] rounded-2xl">
               <div className="bg-transparent w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
