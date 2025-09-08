@@ -78,6 +78,10 @@ export const getUserPosts = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+
+  const limit = Number(req.query.limit) || 10;
+  const offset = Number(req.query.offset) || 0;
+
   const query = `
     SELECT 
       posts.id, 
@@ -95,14 +99,15 @@ export const getUserPosts = async (req: Request, res: Response) => {
     WHERE users.id = ?
     GROUP BY posts.id, posts.content, posts.created_at, users.id, users.username 
     ORDER BY posts.created_at DESC
+    LIMIT ? OFFSET ?
   `;
   try {
     const db = getDB();
-    const [rows] = await db.execute(query, [req.user.userId, userId]);
+    const [rows] = await db.query(query, [req.user.userId, userId, limit, offset]);
     res.json(rows);
   } catch (error: any) {
     console.log("Error fetching posts:", error.message || error);
-    res.status(500).json({ error: "Failed to fetch posts" });
+    res.status(500).json({ error: "Failed to fetch User posts" });
   }
 }
 
@@ -193,6 +198,8 @@ export const getComments = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+  const limit = Number(req.query.limit) || 5;
+  const offset = Number(req.query.offset) || 0;
   const postId: number = parseInt(req.params.postId);
   const query = `
 SELECT 
@@ -211,11 +218,12 @@ LEFT JOIN comment_likes cl ON c.id = cl.fk_c_id
 WHERE c.fk_p_id = ?
 GROUP BY c.id, c.content, c.created_at, u.username, c.fk_u_id
 ORDER BY c.created_at ASC
+LIMIT ? OFFSET ?
 `;
 
   try {
     const db = getDB();
-    const [result]: any = await db.execute(query, [req.user.userId, postId]);
+    const [result]: any = await db.query(query, [req.user.userId, postId, limit, offset]);
     res.json(result)
   } catch (error) {
     console.error(error);
