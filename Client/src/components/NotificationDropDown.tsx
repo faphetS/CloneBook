@@ -1,6 +1,6 @@
 import { Menu, MenuButton, Transition } from "@headlessui/react";
 import { motion } from "framer-motion";
-import { Fragment, useEffect } from "react";
+import { Fragment, useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useNotificationStore } from "../store/notifStore";
 import { formatShortTime } from "../utils/time";
@@ -8,23 +8,57 @@ import { formatShortTime } from "../utils/time";
 
 
 const NotificationDropdown = () => {
-  const { notifications, fetchNotifs, markAllAsRead } = useNotificationStore();
-
-  const handleClick = async () => {
-    await fetchNotifs();
-  };
-
-  const handleRead = async (event: React.FocusEvent<HTMLDivElement>) => {
-    if (!event.currentTarget.contains(event.relatedTarget)) {
-      if (notifications.some((n) => n.unread)) {
-        await markAllAsRead();
-      }
-    }
-  };
+  const { notifications, loadingMore, hasMore, unreadCount, fetchNotifs, resetNotif, markAllAsRead, fetchUnreadCount } = useNotificationStore();
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const prevScrollNodeRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    resetNotif();
     fetchNotifs();
+    fetchUnreadCount();
+  }, [resetNotif, fetchNotifs, fetchUnreadCount]);
+
+  const handleScroll = useCallback(async () => {
+    const div = scrollRef.current;
+    if (!div || loadingMore || !hasMore) return;
+    if (div.scrollTop + div.clientHeight + 50 >= div.scrollHeight) {
+      await fetchNotifs(true);
+    }
+  }, [loadingMore, hasMore, fetchNotifs]);
+
+  const setScrollRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      const prev = prevScrollNodeRef.current;
+      if (prev && prev !== node) {
+        prev.removeEventListener("scroll", handleScroll);
+      }
+      if (node) {
+        node.addEventListener("scroll", handleScroll);
+      }
+      prevScrollNodeRef.current = node;
+      scrollRef.current = node;
+    },
+    [handleScroll]
+  );
+
+  const handleClick = useCallback(async () => {
+    await fetchNotifs();
   }, [fetchNotifs]);
+
+
+  const handleRead = useCallback(
+    async (event: React.FocusEvent<HTMLDivElement>) => {
+      if (!event.currentTarget.contains(event.relatedTarget)) {
+        if (notifications.some((n) => n.unread)) {
+          await markAllAsRead();
+        }
+      }
+    },
+    [markAllAsRead, notifications]
+  );
+
+
+
 
   return (
     <Menu
@@ -50,7 +84,7 @@ const NotificationDropdown = () => {
             </svg>
             {notifications.some(n => n.unread) && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                {notifications.filter(n => n.unread).length}
+                {unreadCount}
               </span>
 
             )}
@@ -74,16 +108,17 @@ const NotificationDropdown = () => {
               transition={{ duration: 0.15 }}
               className="absolute -right-12 mt-3 w-80 bg-neutral-900 text-white rounded-xl shadow-lg overflow-hidden"
             >
-              <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+              <div
+                ref={setScrollRef}
+                className="max-h-[600px] overflow-y-auto custom-scrollbar">
                 {notifications.length > 0 ? (
                   notifications.map((n) => (
                     <div
                       key={n.id}
                       className={`flex items-start gap-3 px-4 py-3 cursor-pointer 
-    hover:bg-neutral-800/60
-    ${n.unread ? "bg-neutral-800/40" : ""}`}
+                                hover:bg-neutral-800/60
+                                ${n.unread ? "bg-neutral-800/40" : ""}`}
                     >
-                      {/* Avatar + text */}
                       <Link to={`/profile/${n.senderId}`} className="flex-shrink-0">
                         <img
                           src={n.profilePic
@@ -91,7 +126,7 @@ const NotificationDropdown = () => {
                             : `${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`
                           }
                           alt={n.senderName}
-                          className="w-11 h-11 rounded-full object-cover"
+                          className={`w-11 h-11 rounded-full object-cover ${n.profilePic ? ("") : ("border border-neutral-800")}`}
                         />
                       </Link>
 
@@ -120,6 +155,11 @@ const NotificationDropdown = () => {
                   ))) : (
                   <div className="p-4 text-center text-neutral-400">
                     No notifications
+                  </div>
+                )}
+                {loadingMore && (
+                  <div className="p-2 text-center text-neutral-400 text-sm">
+                    Loading...
                   </div>
                 )}
               </div>
