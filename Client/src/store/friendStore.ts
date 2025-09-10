@@ -1,30 +1,69 @@
 import { create } from "zustand";
 import api from "../api/axios";
-import type { FriendStatus, FriendStore } from "../types/friend.types";
+import type { Friend, FriendStatus, FriendStore } from "../types/friend.types";
 
 export const useFriendStore = create<FriendStore>((set, get) => ({
   friends: [],
+  friendsPagination: {
+    offset: 0,
+    limit: 11,
+    hasMore: true,
+    loading: false,
+  },
+
+  pendingRequests: [],
+  pendingPagination: {
+    offset: 0,
+    limit: 7,
+    hasMore: true,
+    loading: false,
+    loadingMore: false,
+  },
+
+  outgoingRequests: [],
   friendStatus: "none",
   friendCount: 0,
-  pendingRequests: [],
-  outgoingRequests: [],
-  loading: false,
+  pendingCount: 0,
+
 
   fetchFriends: async () => {
-    set({ loading: true });
+    const { friendsPagination, friends } = get();
+    const { offset, limit, hasMore } = friendsPagination;
+    if (!hasMore) return;
+
+    set({
+      friendsPagination: {
+        ...friendsPagination,
+        loading: true,
+      },
+    });
     try {
-      const res = await api.get("/friends");
-      set({ friends: res.data, loading: false });
+      const res = await api.get(`/friends?offset=${offset}&limit=${limit}`);
+      const data = res.data
+
+      set({
+        friends: [...friends, ...data],
+        friendsPagination: {
+          offset: offset + data.length,
+          limit,
+          hasMore: data.length === limit,
+          loading: false,
+        },
+      });
     } catch (err) {
       console.error(err);
-    } finally {
-      set({ loading: false });
+      set({
+        friendsPagination: {
+          ...friendsPagination,
+          loading: false,
+        },
+      });
     }
   },
 
   fetchFriendCount: async (userId: number) => {
     try {
-      const res = await api.get(`/friends/count/${userId}`); // GET /friends/count/:userId
+      const res = await api.get(`/friends/count/${userId}`);
       set({ friendCount: res.data.friendCount });
     } catch (err) {
       console.error(err);
@@ -41,15 +80,71 @@ export const useFriendStore = create<FriendStore>((set, get) => ({
     }
   },
 
-  fetchPendingRequests: async () => {
-    set({ loading: true });
+  resetPendingReq: () => set({
+    friends: [],
+    friendsPagination: {
+      offset: 0,
+      limit: 11,
+      hasMore: true,
+      loading: false,
+    },
+  }),
+
+  resetFriends: () => set({
+    pendingRequests: [],
+    pendingPagination: {
+      offset: 0,
+      limit: 7,
+      hasMore: true,
+      loading: false,
+      loadingMore: false,
+    },
+  }),
+
+  fetchPendingCount: async () => {
     try {
-      const res = await api.get("/friends/requests");
-      set({ pendingRequests: res.data, loading: false });
+      const res = await api.get("/friends/count/pending");
+      set({ pendingCount: res.data.count });
+    } catch (error) {
+      console.error("Failed to fetch pending count", error);
+    }
+  },
+
+  fetchPendingRequests: async (loadMore = false) => {
+    const { pendingPagination, pendingRequests } = get();
+    const { offset, limit, hasMore } = pendingPagination;
+    if (!hasMore) return;
+
+    set({
+      pendingPagination: {
+        ...pendingPagination,
+        loading: !loadMore,
+        loadingMore: loadMore,
+      },
+    });
+
+    try {
+      const res = await api.get(`/friends/requests?offset=${loadMore ? offset : 0}&limit=${limit}`);
+      const data = res.data;
+      set({
+        pendingRequests: loadMore ? [...pendingRequests, ...data] : data,
+        pendingPagination: {
+          offset: loadMore ? offset + data.length : data.length,
+          limit,
+          hasMore: data.length === limit,
+          loading: false,
+          loadingMore: false,
+        },
+      });
     } catch (err) {
       console.error(err);
-    } finally {
-      set({ loading: false });
+      set({
+        pendingPagination: {
+          ...pendingPagination,
+          loading: false,
+          loadingMore: false,
+        },
+      });
     }
   },
 
@@ -71,33 +166,48 @@ export const useFriendStore = create<FriendStore>((set, get) => ({
     }
   },
 
-  acceptRequest: async (senderId: number) => {
-    const prevPending = get().pendingRequests;
+  acceptRequest: async (friend: Friend) => {
+    const { pendingRequests, pendingCount, friends } = get();
+
+    const prevPending = [...pendingRequests];
+    const prevCount = pendingCount;
+    const prevFriends = [...friends];
     set({
-      pendingRequests: prevPending.filter((req) => req.senderId !== senderId),
+      pendingRequests: prevPending.filter((req) => req.senderId !== friend.id),
+      pendingCount: Math.max(prevCount - 1, 0),
+      friends: [...friends, friend],
       friendStatus: "friends",
     });
     try {
-      await api.post("/friends/request/accept", { sender_id: senderId });
-      // optional: refresh friends list
-      await get().fetchFriends();
+      await api.post("/friends/request/accept", { sender_id: friend.id });
     } catch (err) {
       console.error(err);
-      set({ pendingRequests: prevPending, friendStatus: "pending_incoming" });
+      set({
+        pendingRequests: prevPending,
+        pendingCount: prevCount,
+        friends: prevFriends,
+        friendStatus: "pending_incoming"
+      });
     }
   },
 
   declineRequest: async (senderId: number) => {
     const prevPending = get().pendingRequests;
+    const prevCount = get().pendingCount;
     set({
       pendingRequests: prevPending.filter((req) => req.senderId !== senderId),
+      pendingCount: Math.max(prevCount - 1, 0),
       friendStatus: "none",
     });
     try {
       await api.post("/friends/request/decline", { sender_id: senderId });
     } catch (err) {
       console.error(err);
-      set({ pendingRequests: prevPending, friendStatus: "pending_incoming" });
+      set({
+        pendingRequests: prevPending,
+        pendingCount: prevCount,
+        friendStatus: "pending_incoming"
+      });
     }
   },
 
@@ -116,15 +226,23 @@ export const useFriendStore = create<FriendStore>((set, get) => ({
   },
 
   unfriend: async (friendId: number) => {
-    set({ friendStatus: "none" });
+    const prevFriends = get().friends;
+    const prevCount = get().friendCount;
+    set({
+      friends: prevFriends.filter((f) => f.id !== friendId),
+      friendCount: Math.max(prevCount - 1, 0),
+      friendStatus: "none",
+    });
 
     try {
       await api.delete(`/friends/${friendId}`);
-      await get().fetchFriends();
-      await get().fetchFriendCount(friendId);
     } catch (err) {
       console.error(err);
-      set({ friendStatus: "friends" });
+      set({
+        friends: prevFriends,
+        friendCount: prevCount,
+        friendStatus: "friends",
+      });
     }
   },
 

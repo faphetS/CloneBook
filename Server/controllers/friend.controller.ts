@@ -9,6 +9,7 @@ export const sendFriendRequest = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+
   const checkQuery = "SELECT * FROM friend_requests WHERE sender_id=? AND receiver_id=?";
   const insertQuery = "INSERT INTO friend_requests (sender_id, receiver_id) VALUES (?, ?)";
 
@@ -139,10 +140,27 @@ export const unfriendUser = async (req: Request, res: Response) => {
   }
 };
 
+export const getPendingReqCount = async (req: Request, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const query = "SELECT COUNT(*) as count FROM friend_requests WHERE receiver_id = ?";
+  try {
+    const db = getDB();
+    const [rows]: any = await db.execute(query, [req.user.userId]);
+    res.json({ count: rows[0].count });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 export const getFriendRequests = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+  const limit = Math.min(Number(req.query.limit) || 7, 7);
+  const offset = Number(req.query.offset) || 0;
   const query = `
     SELECT 
       fr.id,
@@ -154,11 +172,12 @@ export const getFriendRequests = async (req: Request, res: Response) => {
     JOIN users u ON fr.sender_id = u.id
     WHERE fr.receiver_id = ?
     ORDER BY fr.created_at DESC
+    LIMIT ? OFFSET ?
   `;
 
   try {
     const db = getDB();
-    const [rows] = await db.execute<RowDataPacket[]>(query, [req.user.userId]);
+    const [rows] = await db.query<RowDataPacket[]>(query, [req.user.userId, limit, offset]);
 
     res.json(rows);
   } catch (err) {
@@ -171,19 +190,22 @@ export const getFriends = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+  const limit = Math.min(Number(req.query.limit) || 11, 11);
+  const offset = Number(req.query.offset) || 0;
   const query = `SELECT 
   u.id, 
   u.username, 
   u.profile_pic AS profilePic
   FROM friends f
   JOIN users u ON f.friend_id = u.id
-  WHERE f.user_id = ?`;
+  WHERE f.user_id = ? 
+  LIMIT ? OFFSET ?`;
 
   try {
     const db = getDB();
-    const [rows] = await db.execute<RowDataPacket[]>(
+    const [rows] = await db.query<RowDataPacket[]>(
       query,
-      [req.user.userId]
+      [req.user.userId, limit, offset]
     );
 
 

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useAuthStore } from "../store/authStore";
+import { useAuthStore } from "../store/AuthStore.js";
 
 const api = axios.create({
   baseURL: "/api",
@@ -21,10 +21,16 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    console.log('Axios error response:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url
+    });
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      console.log('Attempting token refresh...');
 
       const { setTokens, logout } = useAuthStore.getState();
 
