@@ -8,20 +8,38 @@ import { formatShortTime } from "../utils/time";
 
 
 const NotificationDropdown = () => {
-  const { notifications, loadingMore, hasMore, unreadCount, fetchNotifs, resetNotif, markAllAsRead, fetchUnreadCount } = useNotificationStore();
+  const {
+    notifications,
+    loading,
+    loadingMore,
+    hasMore,
+    unreadCount,
+    fetchNotifs,
+    resetNotif,
+    markAllAsRead,
+    fetchUnreadCount
+  } = useNotificationStore();
+
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const prevScrollNodeRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     resetNotif();
-    fetchNotifs();
     fetchUnreadCount();
-  }, [resetNotif, fetchNotifs, fetchUnreadCount]);
+
+    // since its just for a portfolio i made it simpler instead of 
+    // using technologies like socket.io or native WebSocket.
+    const interval = setInterval(() => {
+      fetchUnreadCount();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [resetNotif, fetchUnreadCount]);
 
   const handleScroll = useCallback(async () => {
     const div = scrollRef.current;
     if (!div || loadingMore || !hasMore) return;
-    if (div.scrollTop + div.clientHeight + 50 >= div.scrollHeight) {
+    if (div.scrollTop + div.clientHeight + 1 >= div.scrollHeight) {
       await fetchNotifs(true);
     }
   }, [loadingMore, hasMore, fetchNotifs]);
@@ -82,7 +100,7 @@ const NotificationDropdown = () => {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
             </svg>
-            {notifications.some(n => n.unread) && (
+            {!!unreadCount && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
                 {unreadCount}
               </span>
@@ -91,7 +109,6 @@ const NotificationDropdown = () => {
 
           </MenuButton>
 
-          {/* Dropdown Panel */}
           <Transition
             as={Fragment}
             enter="transition ease-out duration-200"
@@ -111,7 +128,21 @@ const NotificationDropdown = () => {
               <div
                 ref={setScrollRef}
                 className="max-h-[600px] overflow-y-auto custom-scrollbar">
-                {notifications.length > 0 ? (
+                {loading && !notifications.length ? (
+                  <div className="p-3 flex flex-col gap-3">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="flex items-start gap-3 animate-pulse">
+
+                        <div className="w-11 h-11 rounded-full bg-neutral-700" />
+
+                        <div className="flex flex-col flex-1 gap-2">
+                          <div className="w-32 h-4 rounded bg-neutral-700" />
+                          <div className="w-44 h-3 rounded bg-neutral-800" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : notifications.length > 0 ? (
                   notifications.map((n) => (
                     <div
                       key={n.id}
@@ -157,9 +188,17 @@ const NotificationDropdown = () => {
                     No notifications
                   </div>
                 )}
-                {loadingMore && (
-                  <div className="p-2 text-center text-neutral-400 text-sm">
-                    Loading...
+                {loadingMore && notifications.length > 0 && (
+                  <div className="p-3 flex flex-col gap-3">
+                    {[...Array(2)].map((_, i) => (
+                      <div key={i} className="flex items-start gap-3 animate-pulse">
+                        <div className="w-11 h-11 rounded-full bg-neutral-700" />
+                        <div className="flex flex-col flex-1 gap-2">
+                          <div className="w-28 h-4 rounded bg-neutral-700" />
+                          <div className="w-36 h-3 rounded bg-neutral-800" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
