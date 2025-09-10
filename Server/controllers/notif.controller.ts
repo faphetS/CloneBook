@@ -18,7 +18,7 @@ export const getNotif = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
-  const limit = Number(req.query.limit) || 10;
+  const limit = Math.min(Number(req.query.limit) || 10, 10);
   const offset = Number(req.query.offset) || 0;
   const query = `
       SELECT 
