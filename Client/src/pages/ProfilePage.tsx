@@ -6,7 +6,7 @@ import LeftNav from "../components/LeftNav";
 import Post from "../components/Posts/Post";
 import Poster from "../components/Posts/Poster";
 import RightNav from "../components/RightNav";
-import { useAuthStore } from "../store/authStore";
+import { useAuthStore } from "../store/AuthStore";
 import { useFriendStore } from "../store/friendStore";
 import { usePostStore } from "../store/postStore";
 import { useUserStore } from "../store/userStore";
@@ -88,36 +88,42 @@ const ProfilePage = () => {
         <div className="w-[680px] mx-[clamp(0px,3vw,80px)] min-w-[485px] flex flex-col pt-4 items-center gap-4 pb-12">
 
           <div className="border-b-2 border-neutral-900 w-full flex flex-col sm:flex-row items-center gap-3 mb-2">
-            {profile?.profilePic ? (
-              <div className="min-w-[200px] min-h-[200px] flex items-center justify-center">
+            <div className="min-w-[200px] min-h-[200px] flex items-center justify-center">
+              {loading ? (
+                <div className="w-[162px] h-[162px] rounded-full bg-neutral-700 animate-pulse" />
+              ) : (
                 <img
-                  src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${profile.profilePic}`}
-                  alt={`${profile.username}'s profile`}
-                  className="w-[162px] h-[162px] rounded-full object-cover border-2 border-neutral-900"
-                />
-              </div>
-
-            ) : (
-              <div className="min-w-[200px] min-h-[200px] flex items-center justify-center">
-                <img
-                  src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
+                  src={
+                    profile?.profilePic
+                      ? `${import.meta.env.VITE_API_DOMAIN}/uploads/${profile.profilePic}`
+                      : `${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`
+                  }
                   alt={`${profile?.username}'s profile`}
                   className="w-[162px] h-[162px] rounded-full object-cover border-2 border-neutral-900"
                 />
-              </div>
-            )}
+              )}
+            </div>
+
             <div className="flex flex-col sm:flex-row w-full items-center justify-between pr-0 pb-3 gap-3 sm:pr-8 sm:gap-0 sm:pb-0">
               <div className="flex flex-col">
-                <p className="text-2xl font-semibold">{profile?.username}</p>
-
-                {friendCount > 0 ? (
-                  <p className="text-neutral-400 sm:text-start text-center">
-                    {friendCount} &#183; Friend{friendCount > 1 ? ("s") : ("")}
-                  </p>
+                {loading ? (
+                  <>
+                    <div className="h-6 w-40 bg-neutral-700 rounded-md animate-pulse mb-2" />
+                    <div className="h-4 w-28 bg-neutral-700 rounded-md animate-pulse" />
+                  </>
                 ) : (
-                  <p className="text-neutral-400 sm:text-start text-center">
-                    No friends yet
-                  </p>
+                  <>
+                    <p className="text-2xl font-semibold">{profile?.username}</p>
+                    {friendCount > 0 ? (
+                      <p className="text-neutral-400 sm:text-start text-center">
+                        {friendCount} &#183; Friend{friendCount > 1 ? "s" : ""}
+                      </p>
+                    ) : (
+                      <p className="text-neutral-400 sm:text-start text-center">
+                        No friends yet
+                      </p>
+                    )}
+                  </>
                 )}
 
 
@@ -180,10 +186,14 @@ const ProfilePage = () => {
                     </button>
                   )}
 
-                  {friendStatus === "pending_incoming" && (
+                  {friendStatus === "pending_incoming" && profile && (
                     <div className="flex gap-2 font-semibold">
                       <button
-                        onClick={() => acceptRequest(Number(id))}
+                        onClick={() => acceptRequest({
+                          id: profile.id,
+                          username: profile.username,
+                          profilePic: profile.profilePic,
+                        })}
                         className="bg-[#1877F2] hover:bg-[#3a8cff] rounded-md px-3 py-2"
                       >
                         Accept
