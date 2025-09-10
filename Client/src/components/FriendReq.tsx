@@ -1,8 +1,9 @@
 import { Menu, MenuButton, Transition } from "@headlessui/react";
 import { motion } from "framer-motion";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useFriendStore } from "../store/friendStore";
+import type { FriendRequest } from "../types/friend.types";
 import { formatShortTime } from "../utils/time";
 
 
@@ -10,23 +11,69 @@ import { formatShortTime } from "../utils/time";
 const FriendReq = () => {
   const {
     pendingRequests,
+    pendingPagination: { loading, loadingMore, hasMore },
+    pendingCount,
+    resetPendingReq,
+    fetchPendingCount,
     fetchPendingRequests,
     acceptRequest,
-    declineRequest } = useFriendStore();
+    declineRequest
+  } = useFriendStore();
 
   const [localStatus, setLocalStatus] = useState<Record<number, string>>({});
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const prevScrollNodeRef = useRef<HTMLDivElement | null>(null);
 
-  const handleClick = async () => {
-    await fetchPendingRequests();
-  };
 
   useEffect(() => {
-    fetchPendingRequests();
+    resetPendingReq();
+    fetchPendingCount();
+
+    // since its just for a portfolio i made it simpler instead of 
+    // using technologies like socket.io or native WebSocket
+    const interval = setInterval(() => {
+      fetchPendingCount();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [resetPendingReq, fetchPendingCount]);
+
+
+  const handleScroll = useCallback(async () => {
+    const div = scrollRef.current;
+    if (!div || loadingMore || !hasMore) return;
+    if (div.scrollTop + div.clientHeight + 50 >= div.scrollHeight) {
+      await fetchPendingRequests(true);
+    }
+  }, [loadingMore, hasMore, fetchPendingRequests]);
+
+  const setScrollRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      const prev = prevScrollNodeRef.current;
+      if (prev && prev !== node) {
+        prev.removeEventListener("scroll", handleScroll);
+      }
+      if (node) {
+        node.addEventListener("scroll", handleScroll);
+      }
+      prevScrollNodeRef.current = node;
+      scrollRef.current = node;
+    },
+    [handleScroll]
+  );
+
+  const handleClick = useCallback(async () => {
+    await fetchPendingRequests();
   }, [fetchPendingRequests]);
 
-  const handleAccept = async (senderId: number) => {
-    setLocalStatus((prev) => ({ ...prev, [senderId]: "accepted" }));
-    await acceptRequest(senderId);
+  const handleAccept = async (req: FriendRequest) => {
+    setLocalStatus((prev) => ({ ...prev, [req.senderId]: "accepted" }));
+
+    await acceptRequest({
+      id: req.senderId,
+      username: req.senderName,
+      profilePic: req.senderProfilePic,
+    });
   };
 
   const handleDecline = async (senderId: number) => {
@@ -53,9 +100,9 @@ const FriendReq = () => {
                 }`}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
             </svg>
-            {pendingRequests.length > 0 && (
+            {!!pendingCount && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                {pendingRequests.length}
+                {pendingCount}
               </span>
             )}
 
@@ -78,8 +125,35 @@ const FriendReq = () => {
               transition={{ duration: 0.15 }}
               className="absolute -right-12 mt-3 w-80 bg-neutral-900 text-white rounded-xl shadow-lg overflow-hidden"
             >
-              <div className="max-h-[650px] overflow-y-auto custom-scrollbar">
-                {pendingRequests.length > 0 ? (
+              <div
+                ref={setScrollRef}
+                className="max-h-[600px] overflow-y-auto custom-scrollbar">
+
+                {loading && !pendingRequests.length ? (
+                  <div className="p-3 flex flex-col gap-3">
+                    {[...Array(3)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-3 animate-pulse"
+                      >
+                        {/* Avatar */}
+                        <div className="w-11 h-11 rounded-full bg-neutral-700" />
+
+                        <div className="flex flex-col flex-1 gap-2">
+                          {/* Name + message */}
+                          <div className="w-32 h-4 rounded bg-neutral-700" />
+                          <div className="w-44 h-3 rounded bg-neutral-800" />
+
+                          {/* Buttons */}
+                          <div className="flex gap-2 mt-2">
+                            <div className="h-8 w-16 bg-neutral-700 rounded" />
+                            <div className="h-8 w-16 bg-neutral-800 rounded" />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : pendingRequests.length > 0 ? (
                   pendingRequests.map((req) => {
                     const status = localStatus[req.senderId];
 
@@ -127,7 +201,7 @@ const FriendReq = () => {
                           {status ? null : (
                             <div className="flex gap-2 mt-2">
                               <button
-                                onClick={() => handleAccept(req.senderId)}
+                                onClick={() => handleAccept(req)}
                                 className="px-3 py-1 font-semibold bg-[#1877F2] hover:bg-[#3a8cff] rounded"
                               >
                                 Accept
