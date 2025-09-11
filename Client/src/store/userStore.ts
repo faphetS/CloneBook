@@ -1,12 +1,15 @@
 import axios from "axios";
 import { create } from "zustand";
 import api from "../api/axios";
-import type { UserState, UserType } from "../types/user.types";
+import type { UserSearchType, UserState, UserType } from "../types/user.types";
 
 
 export const useUserStore = create<UserState>((set) => ({
   profile: null,
   loading: true,
+  loadingSearch: false,
+  searchResults: [],
+
 
   fetchUserDetails: async (userId: number) => {
     set({ loading: true });
@@ -19,6 +22,26 @@ export const useUserStore = create<UserState>((set) => ({
       set({ loading: false });
     }
   },
+
+  searchUsers: async (username: string) => {
+    set({ loadingSearch: true })
+    try {
+      const res = await api.get<UserSearchType[]>("/user/search", {
+        params: { username }
+      });
+
+      set({
+        searchResults: res.data
+      });
+    } catch (error) {
+      console.error("Search failed:", error);
+      set({ searchResults: [] });
+    } finally {
+      set({ loadingSearch: false })
+    }
+  },
+
+  setLoadingSearch: (val: boolean) => set({ loadingSearch: val }),
 
   updateProfile: async (data: {
     username?: string;

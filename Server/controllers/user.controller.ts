@@ -265,3 +265,22 @@ export const updateProfile = async (req: Request, res: Response) => {
   }
 };
 
+export const searchUser = async (req: Request, res: Response) => {
+  let { username } = req.query;
+  const query = "SELECT id, username, profile_pic AS profilePic FROM users WHERE username LIKE ? LIMIT 10";
+
+  if (!username || typeof username !== "string") {
+    return res.status(400).json({ message: "username query required" });
+  }
+  username = username.trim();
+
+  try {
+    const db = getDB();
+    const [rows] = await db.query(query, [`%${username}%`]);
+    res.json(rows);
+  } catch (error) {
+    console.error("Search error: ", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+

@@ -131,27 +131,25 @@ const FriendReq = () => {
 
                 {loading && !pendingRequests.length ? (
                   <div className="p-3 flex flex-col gap-3">
-                    {[...Array(3)].map((_, i) => (
-                      <div
-                        key={i}
-                        className="flex items-start gap-3 animate-pulse"
-                      >
-                        {/* Avatar */}
-                        <div className="w-11 h-11 rounded-full bg-neutral-700" />
+                    <div
+                      className="flex items-start gap-3 animate-pulse"
+                    >
+                      {/* Avatar */}
+                      <div className="w-11 h-11 rounded-full bg-neutral-700" />
 
-                        <div className="flex flex-col flex-1 gap-2">
-                          {/* Name + message */}
-                          <div className="w-32 h-4 rounded bg-neutral-700" />
-                          <div className="w-44 h-3 rounded bg-neutral-800" />
+                      <div className="flex flex-col flex-1 gap-2">
+                        {/* Name + message */}
+                        <div className="w-32 h-4 rounded bg-neutral-700" />
+                        <div className="w-44 h-3 rounded bg-neutral-800" />
 
-                          {/* Buttons */}
-                          <div className="flex gap-2 mt-2">
-                            <div className="h-8 w-16 bg-neutral-700 rounded" />
-                            <div className="h-8 w-16 bg-neutral-800 rounded" />
-                          </div>
+                        {/* Buttons */}
+                        <div className="flex gap-2 mt-2">
+                          <div className="h-8 w-16 bg-neutral-700 rounded" />
+                          <div className="h-8 w-16 bg-neutral-800 rounded" />
                         </div>
                       </div>
-                    ))}
+                    </div>
+
                   </div>
                 ) : pendingRequests.length > 0 ? (
                   pendingRequests.map((req) => {
@@ -219,7 +217,7 @@ const FriendReq = () => {
                     );
                   })
                 ) : (
-                  <div className="p-4 text-center text-neutral-400">
+                  <div className="p-12 text-center text-neutral-400">
                     No friend requests
                   </div>
                 )}

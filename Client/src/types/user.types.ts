@@ -8,9 +8,20 @@ export interface UserType {
   role: string;
 }
 
+export interface UserSearchType {
+  id: number;
+  username: string;
+  profilePic: string;
+}
+
 export interface UserState {
   profile: UserType | null;
   loading: boolean;
+  loadingSearch: boolean;
+  searchResults: UserSearchType[];
+
+  setLoadingSearch: (val: boolean) => void
+  searchUsers: (username: string) => Promise<void>;
   fetchUserDetails: (userId: number) => Promise<void>;
   updateProfile?: (data: {
     username?: string;

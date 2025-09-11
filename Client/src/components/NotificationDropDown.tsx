@@ -184,7 +184,7 @@ const NotificationDropdown = () => {
                     </div>
 
                   ))) : (
-                  <div className="p-4 text-center text-neutral-400">
+                  <div className="p-12 text-center text-neutral-400">
                     No notifications
                   </div>
                 )}
