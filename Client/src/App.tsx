@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage"
 import Login from "./pages/Login"
 import ProfilePage from "./pages/ProfilePage"
 import Signup from "./pages/Signup"
+import VerifyEmail from "./pages/VerifyEmail"
 
 const App = () => {
   return (
@@ -11,12 +12,9 @@ const App = () => {
       <Routes>
 
         {/* Public Routes */}
-        <Route
-          path="/login"
-          element={<Login />} />
-        <Route
-          path="/signup"
-          element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/verify" element={<VerifyEmail />} />
 
         {/* Protected Routes */}
         <Route
