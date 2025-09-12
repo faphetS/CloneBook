@@ -1,0 +1,57 @@
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuthStore } from "../store/AuthStore";
+
+const VerifyEmail = () => {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const [message, setMessage] = useState("Verifying...");
+  const [loading, setLoading] = useState(true);
+  const [verified, setVerified] = useState(false);
+  const navigate = useNavigate();
+  const { verifyEmail } = useAuthStore();
+
+  useEffect(() => {
+    const verify = async () => {
+      if (!token) {
+        setMessage("Invalid verification link.");
+        setLoading(false);
+        return;
+      }
+
+      if (verified) {
+        return;
+      }
+
+      const result = await verifyEmail(token);
+      setMessage(result.message);
+      setLoading(false)
+      setVerified(true);
+    };
+
+    verify();
+  }, [token, verifyEmail, verified]);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-900 text-white space-y-6">
+      {loading ? (
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
+          <p>{message}</p>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center space-y-4">
+          <h1>{message}</h1>
+          <button
+            onClick={() => navigate("/login")}
+            className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-500 transition"
+          >
+            Go to Login
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default VerifyEmail;
