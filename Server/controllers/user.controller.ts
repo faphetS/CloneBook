@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { Request, Response } from "express";
 import fs from "fs/promises";
 import jwt from "jsonwebtoken";
@@ -8,6 +9,7 @@ import { fileURLToPath } from "url";
 import { getDB } from "../config/db.js";
 import { refreshTokenPayload } from "../types/jwtPayload.types.js";
 import { LoginBody, SignupBody } from "../types/user.types.js";
+import { sendVerificationEmail } from "../utils/mailer.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,28 +18,114 @@ const __dirname = path.dirname(__filename);
 export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) => {
   const { username, email, password } = req.body;
   const hashedPassword: string = await bcrypt.hash(password, 10);
-  const value = [username, email, hashedPassword];
-  const query: string = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+
+  const query = "INSERT INTO users (username, email, password, isVerified) VALUES (?, ?, ?, ?)";
+  const query2 = "INSERT INTO verification_tokens (userId, token, expiresAt) VALUES (?, ?, ?)";
+
+  let db;
+  let userId: number | null = null;
 
   try {
-    const db = getDB();
-    const [result] = await db.execute(query, value);
-    res.json({ success: true, id: (result as any).insertId });
+    db = await getDB().getConnection();
+
+    const [result] = await db.query(query, [username, email, hashedPassword, false]);
+
+    userId = (result as any).insertId;
+    console.log("✅ User inserted successfully with ID:", userId);
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    const mysqlExpiresAt = expiresAt.toISOString().slice(0, 19).replace("T", " ");
+
+    console.log("📝 Attempting to insert verification token:", {
+      userId,
+      token,
+      expiresAt: mysqlExpiresAt
+    });
+
+    const [tokenResult] = await db.query(query2, [userId, token, mysqlExpiresAt]);
+    console.log("✅ Verification token inserted:", tokenResult);
+
+    try {
+      await sendVerificationEmail(email, token);
+    } catch (err) {
+      console.error("Failed to send verification email:", err);
+    }
+
+    res.json({
+      success: true,
+      message: "Signup successful. Please verify your email.",
+    });
   } catch (e: any) {
+    console.error("Signup error:", e);
+
+    if (userId && db) {
+      try {
+        await db.query("DELETE FROM users WHERE id = ?", [userId]);
+        console.log("🗑️ Rolled back user insertion due to error");
+      } catch (deleteError) {
+        console.error("❌ Failed to delete user during rollback:", deleteError);
+      }
+    }
+
+
     if (e.code === "ER_DUP_ENTRY") {
       return res.status(400).json({
         success: false,
         message: "Email already exists.",
       });
     }
-
-    console.error(e);
     return res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
     });
+  } finally {
+    if (db) {
+      db.release();
+      console.log("🔗 Connection released back to pool");
+    }
   }
 
+};
+
+export const verifyEmail = async (req: Request, res: Response) => {
+  const { token } = req.query;
+  if (!token || typeof token !== "string") {
+    return res.status(400).json({ success: false, message: "Valid token is required" });
+  }
+  let db;
+
+  try {
+    db = await getDB().getConnection();
+
+    const [tokenRows] = await db.query<RowDataPacket[]>(
+      "SELECT * FROM verification_tokens WHERE token = ?",
+      [token]
+    );
+
+    if (tokenRows.length > 0) {
+      const tokenRecord = tokenRows[0];
+      const now = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+      if (tokenRecord.expiresAt < now) {
+        await db.query("DELETE FROM users WHERE id = ?", [tokenRecord.userId]);
+        await db.query("DELETE FROM verification_tokens WHERE id = ?", [tokenRecord.id]);
+        return res.status(400).json({ success: false, message: "Verification link has expired." });
+      }
+
+      await db.query("UPDATE users SET isVerified = true WHERE id = ?", [tokenRecord.userId]);
+      await db.query("DELETE FROM verification_tokens WHERE id = ?", [tokenRecord.id]);
+
+      return res.json({ success: true, message: "Email verified successfully" });
+    }
+
+    return res.json({ success: true, message: "Email verified successfully" });
+
+  } catch (error: any) {
+    console.error("Verification error:", error.message);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    if (db) db.release();
+  }
 };
 
 export const login = async (
@@ -62,6 +150,13 @@ export const login = async (
       return res.status(401).json({ success: false, message: "Wrong Password" });
     }
 
+    if (!user.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email before logging in.",
+      });
+    }
+
     const accessToken = jwt.sign(
       {
         userId: user.id,
@@ -78,6 +173,7 @@ export const login = async (
       { expiresIn: "7d" }
     );
 
+    await db.execute("DELETE FROM refresh_tokens WHERE fk_u_id = ?", [user.id]);
     await db.execute("INSERT INTO refresh_tokens (token, fk_u_id) VALUES (?, ?)", [
       refreshToken,
       user.id,

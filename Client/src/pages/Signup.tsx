@@ -1,11 +1,10 @@
 import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { useAuthStore } from "../store/AuthStore";
 
 const Signup = () => {
-  const navigate = useNavigate();
   const { logout } = useAuthStore();
   const [form, setForm] = useState({
     username: '',
@@ -14,6 +13,7 @@ const Signup = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Auto logout to make things simpler
   useEffect(() => {
@@ -31,7 +31,10 @@ const Signup = () => {
     setError('');
     try {
       await api.post('/auth/signup', form);
-      navigate('/login');
+      setSuccessMessage(
+        'Signup successful! Please check your email to verify your account before logging in.'
+      );
+      setForm({ username: '', email: '', password: '' });
     } catch (err) {
       const error = err as AxiosError<{ message?: string }>;
       setError(error.response?.data?.message || "Signup failed");
@@ -45,56 +48,60 @@ const Signup = () => {
       <div className="bg-neutral-900 w-full max-w-[400px] rounded-xl shadow-lg p-8 space-y-6">
         <h1 className="text-4xl font-bold text-center mb-4">CloneBook</h1>
 
-        <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-          <div>
-            <label className="block mb-1 text-sm font-medium">Username</label>
-            <input
-              name="username"
-              type="text"
-              value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
+        {successMessage ? (
+          <p className="text-green-400 text-center">{successMessage}</p>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+            <div>
+              <label className="block mb-1 text-sm font-medium">Username</label>
+              <input
+                name="username"
+                type="text"
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+                disabled={loading}
+                className="w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm font-medium">Email</label>
+              <input
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                disabled={loading}
+                className="w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm font-medium">Password</label>
+              <input
+                name="password"
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                disabled={loading}
+                className="w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                required
+              />
+            </div>
+
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+
+            <button
+              type="submit"
               disabled={loading}
-              className="w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 text-sm font-medium">Email</label>
-            <input
-              name="email"
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              disabled={loading}
-              className="w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 text-sm font-medium">Password</label>
-            <input
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              disabled={loading}
-              className="w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-600 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
-              required
-            />
-          </div>
-
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 rounded-lg py-2 font-semibold transition-colors"
-          >
-            {loading ? 'Loading...' : 'Sign Up'}
-          </button>
-        </form>
+              className="bg-blue-600 hover:bg-blue-700 rounded-lg py-2 font-semibold transition-colors"
+            >
+              {loading ? 'Loading...' : 'Sign Up'}
+            </button>
+          </form>
+        )}
 
         <p className="text-sm text-center text-neutral-300">
           Already have an account?{' '}
@@ -106,7 +113,7 @@ const Signup = () => {
         </p>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default Signup

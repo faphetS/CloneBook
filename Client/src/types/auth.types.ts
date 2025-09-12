@@ -14,4 +14,5 @@ export interface AuthState {
   logout: () => void;
   setTokens: (accessToken: string) => void;
   updateUser: (updatedUser: User) => void;
+  verifyEmail: (token: string) => Promise<{ success: boolean; message: string }>;
 }
