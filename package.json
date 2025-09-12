@@ -24,6 +24,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.3.0",
+    "@types/nodemailer": "^7.0.1",
     "concurrently": "^9.2.0",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
@@ -38,6 +39,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
-    "mysql2": "^3.14.3"
+    "mysql2": "^3.14.3",
+    "nodemailer": "^7.0.6"
   }
 }
