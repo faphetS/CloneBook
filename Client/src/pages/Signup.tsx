@@ -96,21 +96,21 @@ const Signup = () => {
             <button
               type="submit"
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 rounded-lg py-2 font-semibold transition-colors"
+              className="bg-[#1877F2] disabled:bg-[#3a8cff] hover:bg-[#3a8cff] rounded-lg py-2 font-semibold transition-colors"
             >
               {loading ? 'Loading...' : 'Sign Up'}
             </button>
           </form>
         )}
-
         <p className="text-sm text-center text-neutral-300">
           Already have an account?{' '}
           <Link to='/login'>
-            <span className="text-blue-400 hover:underline cursor-pointer">
+            <span className="text-[#3a8cff] hover:underline cursor-pointer">
               Log in
             </span>
           </Link>
         </p>
+
       </div>
     </div>
   );
