@@ -36,7 +36,7 @@ const HomePage = () => {
       <Header />
       <main className="flex justify-center sm:justify-between pt-16">
         <LeftNav />
-        <div className="w-[680px] mx-[clamp(0px,3vw,80px)] min-w-[485px] flex flex-col pt-4 items-center gap-4 pb-12">
+        <div className="w-[680px] mx-[clamp(0px,3vw,80px)] min-w-[300px] flex flex-col pt-4 items-center gap-4 pb-12">
 
           {/* whats on your mind */}
           <Poster />

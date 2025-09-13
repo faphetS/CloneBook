@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
-import { useAuthStore } from "../../store/authStore";
+import { useAuthStore } from "../../store/AuthStore";
 import { usePostStore } from "../../store/postStore";
 
 const MAX_LENGTH = 500;
@@ -70,7 +70,7 @@ const Poster = () => {
           onChange={handleChange}
           rows={1}
           placeholder={`What's on your mind, ${user?.username}?`}
-          className="w-full bg-neutral-700/30 rounded-2xl px-3 py-2.5 text-white focus:outline-none focus:ring-1 focus:ring-[#1877F2] placeholder:text-neutral-400 overflow-y-hidden leading-tight resize-none"
+          className="w-full bg-neutral-700/30 rounded-2xl px-3 py-2.5 text-white focus:outline-none focus:ring-1 focus:ring-[#1877F2] placeholder:text-neutral-400 overflow-y-hidden leading-tight resize-none whitespace-pre-wrap break-all"
         />
         {content.length >= 200 && (
           <span className="absolute bottom-1 right-3 text-xs text-neutral-400">

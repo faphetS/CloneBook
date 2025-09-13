@@ -35,7 +35,7 @@ const SearchInput = () => {
   }, []);
 
   return (
-    <div className="relative w-[300px]" ref={wrapperRef}>
+    <div className="relative w-[180px] md:w-[300px] sm:w-[250px] min-w-0" ref={wrapperRef}>
       {/* Input */}
       <input
         type="text"
@@ -63,7 +63,7 @@ const SearchInput = () => {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute -top-1 -left-2 w-[316px] z-0">
+        <div className="absolute -top-1 -left-2 w-[250px] sm:-left-2 sm:w-[316px] z-0">
           <div className="pt-12 p-1 bg-neutral-900 rounded-lg shadow-lg text-white">
             {loadingSearch ? (
               <div className="space-y-2 p-2">
@@ -88,7 +88,7 @@ const SearchInput = () => {
                       className={`w-11 h-11 rounded-full object-cover ${user?.profilePic ? "" : "border border-neutral-800"
                         }`}
                     />
-                    <span>{user.username}</span>
+                    <span className="whitespace-pre-wrap break-all">{user.username}</span>
                   </div>
                 </Link>
               ))

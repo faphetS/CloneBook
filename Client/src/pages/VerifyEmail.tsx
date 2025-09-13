@@ -44,9 +44,9 @@ const VerifyEmail = () => {
           <h1>{message}</h1>
           <button
             onClick={() => navigate("/login")}
-            className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-500 transition"
+            className="px-4 py-2 bg-[#1877F2] hover:bg-[#3a8cff] rounded-lg transition"
           >
-            Go to Login
+            Login
           </button>
         </div>
       )}

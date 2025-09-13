@@ -85,7 +85,7 @@ const ProfilePage = () => {
 
       <main className="flex justify-center sm:justify-between pt-16">
         <LeftNav />
-        <div className="w-[680px] mx-[clamp(0px,3vw,80px)] min-w-[485px] flex flex-col pt-4 items-center gap-4 pb-12">
+        <div className="w-[680px] mx-[clamp(0px,3vw,80px)] min-w-min-w-[300px] flex flex-col pt-4 items-center gap-4 pb-12">
 
           <div className="border-b-2 border-neutral-900 w-full flex flex-col sm:flex-row items-center gap-3 mb-2">
             <div className="min-w-[200px] min-h-[200px] flex items-center justify-center">
@@ -113,7 +113,7 @@ const ProfilePage = () => {
                   </>
                 ) : (
                   <>
-                    <p className="text-2xl font-semibold">{profile?.username}</p>
+                    <p className="text-2xl font-semibold whitespace-pre-wrap break-all">{profile?.username}</p>
                     {friendCount > 0 ? (
                       <p className="text-neutral-400 sm:text-start text-center">
                         {friendCount} &#183; Friend{friendCount > 1 ? "s" : ""}
@@ -151,7 +151,7 @@ const ProfilePage = () => {
                     <button
                       onClick={() => unfriend(Number(id))}
                       className="group bg-neutral-700 transition-colors hover:bg-red-600 hover:text-xs hover:py-2.5 rounded-md px-3 py-2 flex gap-1 items-center font-semibold relative">
-                      {/* Default (Friends) */}
+
                       <span className="flex gap-1 items-center group-hover:hidden">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"

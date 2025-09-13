@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { Request, Response } from "express";
 import fs from "fs/promises";
 import jwt from "jsonwebtoken";
+import multer from "multer";
 import { RowDataPacket } from "mysql2";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -20,7 +21,7 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
   const hashedPassword: string = await bcrypt.hash(password, 10);
 
   const query = "INSERT INTO users (username, email, password, isVerified) VALUES (?, ?, ?, ?)";
-  const query2 = "INSERT INTO verification_tokens (userId, token, expiresAt) VALUES (?, ?, ?)";
+  const query2 = "INSERT INTO verification_tokens (userId, token, expiresAt) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))";
 
   let db;
   let userId: number | null = null;
@@ -31,19 +32,9 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     const [result] = await db.query(query, [username, email, hashedPassword, false]);
 
     userId = (result as any).insertId;
-    console.log("✅ User inserted successfully with ID:", userId);
     const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-    const mysqlExpiresAt = expiresAt.toISOString().slice(0, 19).replace("T", " ");
 
-    console.log("📝 Attempting to insert verification token:", {
-      userId,
-      token,
-      expiresAt: mysqlExpiresAt
-    });
-
-    const [tokenResult] = await db.query(query2, [userId, token, mysqlExpiresAt]);
-    console.log("✅ Verification token inserted:", tokenResult);
+    await db.query(query2, [userId, token]);
 
     try {
       await sendVerificationEmail(email, token);
@@ -61,9 +52,9 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     if (userId && db) {
       try {
         await db.query("DELETE FROM users WHERE id = ?", [userId]);
-        console.log("🗑️ Rolled back user insertion due to error");
+        console.log("Rolled back user insertion due to error");
       } catch (deleteError) {
-        console.error("❌ Failed to delete user during rollback:", deleteError);
+        console.error("Failed to delete user during rollback:", deleteError);
       }
     }
 
@@ -89,6 +80,7 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
 
 export const verifyEmail = async (req: Request, res: Response) => {
   const { token } = req.query;
+
   if (!token || typeof token !== "string") {
     return res.status(400).json({ success: false, message: "Valid token is required" });
   }
@@ -98,27 +90,30 @@ export const verifyEmail = async (req: Request, res: Response) => {
     db = await getDB().getConnection();
 
     const [tokenRows] = await db.query<RowDataPacket[]>(
-      "SELECT * FROM verification_tokens WHERE token = ?",
+      "SELECT * FROM verification_tokens WHERE token = ? AND expiresAt > NOW()",
       [token]
     );
 
     if (tokenRows.length > 0) {
-      const tokenRecord = tokenRows[0];
-      const now = new Date().toISOString().slice(0, 19).replace("T", " ");
-
-      if (tokenRecord.expiresAt < now) {
-        await db.query("DELETE FROM users WHERE id = ?", [tokenRecord.userId]);
-        await db.query("DELETE FROM verification_tokens WHERE id = ?", [tokenRecord.id]);
-        return res.status(400).json({ success: false, message: "Verification link has expired." });
-      }
-
-      await db.query("UPDATE users SET isVerified = true WHERE id = ?", [tokenRecord.userId]);
-      await db.query("DELETE FROM verification_tokens WHERE id = ?", [tokenRecord.id]);
-
+      await db.query("UPDATE users SET isVerified = true WHERE id = ?", [tokenRows[0].userId]);
       return res.json({ success: true, message: "Email verified successfully" });
     }
 
-    return res.json({ success: true, message: "Email verified successfully" });
+    const [userRows] = await db.query<RowDataPacket[]>(
+      `SELECT u.* FROM users u 
+       JOIN verification_tokens vt ON u.id = vt.userId 
+       WHERE vt.token = ? AND expiresAt < NOW()`,
+      [token]
+    );
+
+
+    if ((userRows.length > 0) && (userRows[0].isVerified === 0)) {
+      await db.query("DELETE FROM users WHERE id = ?", [userRows[0].id]);
+      await db.query("DELETE FROM verification_tokens WHERE userId = ?", [userRows[0].id]);
+      return res.status(400).json({ success: false, message: "Verification link has expired. Please try signing up again" });
+    }
+
+    return res.status(400).json({ success: false, message: "Verification link has expired." });
 
   } catch (error: any) {
     console.error("Verification error:", error.message);
@@ -156,6 +151,8 @@ export const login = async (
         message: "Please verify your email before logging in.",
       });
     }
+
+    await db.query("DELETE FROM verification_tokens WHERE userId = ?", [user.id]);
 
     const accessToken = jwt.sign(
       {
@@ -289,12 +286,15 @@ export const updateProfile = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+
+  if (req.file && req.file.size > 1 * 1024 * 1024) {
+    return res.status(400).json({ message: "Profile picture must be under 1MB" });
+  }
+
   const { username, password } = req.body;
   const newProfilePic = req.file ? req.file.filename : undefined;
   const fields: string[] = [];
   const values: any[] = [];
-  console.log("Body:", req.body);
-  console.log("File:", req.file);
 
   try {
     const db = getDB();
@@ -350,13 +350,15 @@ export const updateProfile = async (req: Request, res: Response) => {
 
 
   } catch (error: any) {
-
     console.error(error);
-    if (error instanceof Error && error.message.includes("File too large")) {
-      return res.status(400).json({ message: "Profile picture must be under 1MB" });
+    if (error instanceof multer.MulterError) {
+      if (error.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ message: "Profile picture must be under 1MB" });
+      }
     } else if (error instanceof Error && error.message.includes("Only images are allowed")) {
       return res.status(400).json({ message: "Invalid file type. Only images allowed" });
     }
+
     res.status(500).json({ message: "Something went wrong" });
   }
 };
