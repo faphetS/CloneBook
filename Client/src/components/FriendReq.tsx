@@ -123,7 +123,7 @@ const FriendReq = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.15 }}
-              className="absolute -right-12 mt-3 w-80 bg-neutral-900 text-white rounded-xl shadow-lg overflow-hidden"
+              className="absolute -right-[112px] mt-3 w-80 bg-neutral-900 text-white rounded-xl shadow-lg overflow-hidden"
             >
               <div
                 ref={setScrollRef}
