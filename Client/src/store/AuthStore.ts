@@ -32,7 +32,7 @@ export const useAuthStore = create<AuthState>()(
           user: state.user ? { ...state.user, ...updatedUser } : updatedUser,
         })),
 
-      verifyEmail: async (token: string) => {
+      verifyEmail: async (token) => {
         try {
           const encodedToken = encodeURIComponent(token);
           const res = await api.get<{ success: boolean; message: string }>(
