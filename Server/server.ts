@@ -17,23 +17,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.FRONTEND_URL,
   credentials: true
 }));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("api test running...");
+app.get("/health", (req: Request, res: Response) => {
+  res.json({ status: "ok" });
 });
 
-
-
 app.use("/api", apiRoutes);
+
+app.use((err: any, req: Request, res: Response, next: Function) => {
+  console.error(err.stack);
+  res.status(500).json({ message: "Something went wrong" });
+});
 
 const startServer = async () => {
   await connDB();
   app.listen(PORT, () => {
-    console.log(`Server is running on port http://localhost:${PORT}`);
+    const backendURL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
+    console.log(` Server is running on: ${backendURL}`);
   });
 }
 

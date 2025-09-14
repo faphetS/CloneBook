@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useAuthStore } from "../store/AuthStore.js";
+import { useAuthStore } from "../store/authStore.js";
 
 const api = axios.create({
   baseURL: "/api",
@@ -30,11 +30,7 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      console.log('Attempting token refresh...');
-
       const { setTokens, logout } = useAuthStore.getState();
-
-
       try {
         const res = await axios.post("/api/auth/refresh-token", {}, { withCredentials: true });
         const newAccessToken = res.data.accessToken;
@@ -42,7 +38,6 @@ api.interceptors.response.use(
         setTokens(newAccessToken);
 
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        console.log("Token refreshed");
         return api(originalRequest);
       } catch (err) {
         logout();
