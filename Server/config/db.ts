@@ -1,10 +1,4 @@
-import fs from "fs";
 import mysql from "mysql2/promise";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 let pool: mysql.Pool;
 
@@ -21,7 +15,7 @@ export const connDB = async (): Promise<mysql.Pool> => {
         connectionLimit: 10,
         queueLimit: 0,
         ssl: {
-          ca: fs.readFileSync(path.join(__dirname, "../certs/ca.pem")),
+          ca: process.env.DB_CA_CERT?.replace(/\\n/g, "\n"),
         },
       });
       console.log("MySQL Connected!");
