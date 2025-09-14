@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useAuthStore } from "../store/authStore";
+import { useAuthStore } from "../store/autStore";
 import AccountSettings from "./AccountSettings";
 const LeftNav = () => {
   const { user } = useAuthStore();

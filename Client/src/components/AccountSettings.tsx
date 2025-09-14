@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore } from '../store/autStore'
 import { useUserStore } from '../store/userStore'
 import EditProfileModal from './EditProfileModal'
 

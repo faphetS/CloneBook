@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
-import { useAuthStore } from "../../store/authStore";
+import { useAuthStore } from "../../store/autStore";
 import { usePostStore } from "../../store/postStore";
 
 const MAX_LENGTH = 500;

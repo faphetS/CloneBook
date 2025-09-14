@@ -6,7 +6,7 @@ import LeftNav from "../components/LeftNav";
 import Post from "../components/Posts/Post";
 import Poster from "../components/Posts/Poster";
 import RightNav from "../components/RightNav";
-import { useAuthStore } from "../store/authStore";
+import { useAuthStore } from "../store/autStore";
 import { useFriendStore } from "../store/friendStore";
 import { usePostStore } from "../store/postStore";
 import { useUserStore } from "../store/userStore";
