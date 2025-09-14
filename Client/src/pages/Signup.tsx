@@ -2,7 +2,7 @@ import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
-import { useAuthStore } from "../store/AuthStore";
+import { useAuthStore } from "../store/authStore";
 
 const Signup = () => {
   const { logout } = useAuthStore();

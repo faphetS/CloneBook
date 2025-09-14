@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Fragment, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import { useAuthStore } from "../store/AuthStore";
+import { useAuthStore } from "../store/authStore";
 import { useUserStore } from "../store/userStore";
 import EditProfileModal from "./EditProfileModal";
 
