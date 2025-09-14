@@ -2,6 +2,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { Application, Request, Response } from "express";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { connDB } from "./config/db.js";
@@ -13,6 +14,9 @@ const __dirname = path.dirname(__filename);
 const app: Application = express();
 const PORT: number = parseInt(process.env.PORT || "3000", 10);
 
+const uploadsPath = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -20,13 +24,17 @@ app.use(cors({
   origin: process.env.FRONTEND_URL,
   credentials: true
 }));
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
+
+app.use("/uploads", express.static(uploadsPath));
 
 app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "ok" });
 });
 
 app.use("/api", apiRoutes);
+
+
 
 app.use((err: any, req: Request, res: Response, next: Function) => {
   console.error(err.stack);
