@@ -52,7 +52,6 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
     if (userId && db) {
       try {
         await db.query("DELETE FROM users WHERE id = ?", [userId]);
-        console.log("Rolled back user insertion due to error");
       } catch (deleteError) {
         console.error("Failed to delete user during rollback:", deleteError);
       }
@@ -72,7 +71,6 @@ export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) =>
   } finally {
     if (db) {
       db.release();
-      console.log("🔗 Connection released back to pool");
     }
   }
 

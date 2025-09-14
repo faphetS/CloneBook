@@ -55,16 +55,7 @@ export const useUserStore = create<UserState>((set) => ({
       if (data.username) formData.append("username", data.username);
       if (data.password) formData.append("password", data.password);
       if (data.profilePic) formData.append("profilePic", data.profilePic);
-
-      console.log("Sending updateProfile request with FormData:");
-      for (const [key, value] of formData.entries()) {
-        console.log(key, value);
-      }
-
       const res = await api.put<{ message: string; user: UserType }>("/user/profile", formData);
-
-
-      console.log("updateProfile response:", res.data);
 
       set({
         profile: res.data.user,
