@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 const app: Application = express();
 const PORT: number = parseInt(process.env.PORT || "3000", 10);
 
-const uploadsPath = path.join(__dirname, "uploads");
+const uploadsPath = path.resolve("./Server/uploads");
 if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
 
 app.use(express.json());
