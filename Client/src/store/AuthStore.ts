@@ -1,5 +1,7 @@
+import { AxiosError } from "axios";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import api from "../api/axios";
 import type { AuthState, User } from "../types/auth.types";
 
 export const useAuthStore = create<AuthState>()(
@@ -25,10 +27,29 @@ export const useAuthStore = create<AuthState>()(
           accessToken,
         }),
 
-      updateUser: () =>
-        set({
-          //update userr
-        }),
+      updateUser: (updatedUser: User) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...updatedUser } : updatedUser,
+        })),
+
+      verifyEmail: async (token) => {
+        try {
+          const encodedToken = encodeURIComponent(token);
+          const res = await api.get<{ success: boolean; message: string }>(
+            `/auth/verify?token=${encodedToken}`
+          );
+          return res.data;
+        } catch (err: unknown) {
+          let message = "Verification failed.";
+
+          if (err instanceof AxiosError) {
+            message = err.response?.data?.message || message;
+          }
+
+          return { success: false, message };
+        }
+      },
+
 
     }),
     {

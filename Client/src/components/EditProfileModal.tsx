@@ -6,7 +6,12 @@ import { Fragment, useEffect, useState } from "react";
 interface EditProfileModalProps {
   isOpen: boolean;
   closeModal: () => void;
-  onSave: (data: { username: string; password: string; profilePic: File | null }) => void;
+  onSave: (
+    data: {
+      username: string;
+      password: string;
+      profilePic: File | null
+    }) => void;
   currentUsername: string;
   currentProfilePicUrl?: string;
 }
@@ -22,27 +27,57 @@ const EditProfileModal = ({
   const [password, setPassword] = useState("");
   const [profilePic, setProfilePic] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(currentProfilePicUrl);
+  const [error, setError] = useState<string>("");
+
+  const resolvedPreviewUrl = previewUrl
+    ? previewUrl.startsWith("blob:")
+      ? previewUrl
+      : `${import.meta.env.VITE_API_DOMAIN}/uploads/${previewUrl}`
+    : undefined;
+
 
   useEffect(() => {
     setUsername(currentUsername);
     setPreviewUrl(currentProfilePicUrl);
-  }, [currentUsername, currentProfilePicUrl]);
+    setError("");
+  }, [currentUsername, currentProfilePicUrl, isOpen]);
 
-  const handlePicChange = (file: File | null) => {
-    setProfilePic(file);
-    if (file) {
-      setPreviewUrl(URL.createObjectURL(file));
-    } else {
+  const handlePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+
+    if (!file) {
+      setProfilePic(null);
       setPreviewUrl(currentProfilePicUrl);
+      setError("");
+      return;
     }
+    if (file.size > 1 * 1024 * 1024) {
+      setError("Profile picture must be under 1MB");
+      setProfilePic(null);
+      setPreviewUrl(currentProfilePicUrl);
+      e.target.value = "";
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setError("Only image files are allowed");
+      setProfilePic(null);
+      setPreviewUrl(currentProfilePicUrl);
+      e.target.value = "";
+      return;
+    }
+    setError("");
+    setProfilePic(file);
+    setPreviewUrl(URL.createObjectURL(file));
   };
+
   const handleCancel = () => {
-    setPreviewUrl(currentProfilePicUrl); // reset to original
-    setProfilePic(null); // clear selected file
+    setPreviewUrl(currentProfilePicUrl);
+    setProfilePic(null);
     closeModal();
   };
 
   const handleSave = () => {
+    if (error) return;
     onSave({ username, password, profilePic });
     closeModal();
   };
@@ -60,46 +95,38 @@ const EditProfileModal = ({
             transition={{ duration: 0.2 }}
             className="bg-neutral-900 rounded-2xl w-full max-w-md p-6 space-y-6"
           >
-            <h2 className="text-xl font-semibold text-white text-center">
-              Edit Profile
-            </h2>
+            {error ? (
+              <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-2 py-2 rounded-md text-sm text-center">
+                {error}.
+              </div>
+            ) : (
+              <h2 className="text-xl font-semibold text-white text-center">
+                Edit Profile
+              </h2>
+            )}
 
             {/* Profile Picture + Button */}
             <div className="flex flex-col items-center gap-4">
-              {previewUrl ? (
+              {resolvedPreviewUrl ? (
                 <img
-                  src={previewUrl}
+                  src={resolvedPreviewUrl}
                   alt="Profile Preview"
-                  className="w-[200px] h-[200px] rounded-full object-cover"
+                  className="w-[200px] h-[200px] rounded-full object-cover border-2 border-neutral-800"
                 />
               ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-[200px] h-[200px] text-neutral-400"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 
-                       7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 
-                       0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 
-                       0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 
-                       3 3 0 0 1 6 0Z"
-                  />
-                </svg>
+                <img
+                  src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
+                  alt="Profile Preview"
+                  className="w-[200px] h-[200px] rounded-full object-cover border-2 border-neutral-800"
+                />
+
               )}
               <label className="cursor-pointer px-4 py-2 bg-[#1877F2] hover:bg-[#3a8cff] text-white rounded-md transition">
                 Change Photo
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) =>
-                    handlePicChange(e.target.files ? e.target.files[0] : null)
-                  }
+                  onChange={handlePicChange}
                   className="hidden"
                 />
               </label>
@@ -131,19 +158,24 @@ const EditProfileModal = ({
             </div>
 
             {/* Buttons */}
-            <div className="flex justify-end gap-2 mt-4">
-              <button
-                onClick={handleCancel}
-                className="px-4 py-2 rounded-md bg-neutral-700 hover:bg-neutral-600 text-white transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="px-4 py-2 rounded-md bg-[#1877F2] hover:bg-[#3a8cff] text-white transition"
-              >
-                Save
-              </button>
+            <div className="flex justify-between mt-4">
+              <div></div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCancel}
+                  className="px-4 py-2 rounded-md bg-neutral-700 hover:bg-neutral-600 text-white transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={!!error}
+                  className="px-4 py-2 rounded-md bg-[#1877F2] disabled:bg-[#1877F2]/50 hover:bg-[#3a8cff] text-white transition"
+                >
+                  Save
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>

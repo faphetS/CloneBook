@@ -4,6 +4,7 @@ export interface PostType {
   userId: number;
   username: string;
   content: string;
+  profilePic: string;
   created_at: string;
   likeCount: number;
   isLiked: boolean
@@ -12,10 +13,15 @@ export interface PostType {
 export interface PostState {
   posts: PostType[];
   loading: boolean;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
   setPosts: (posts: PostType[]) => void;
+  resetPosts: () => void;
   fetchPosts: () => Promise<void>;
   fetchUserPosts: (userId: number) => Promise<void>;
   addPost: (post: PostType) => void;
+  deletePost: (postId: number) => Promise<void>;
   toggleLike: (postId: number) => void;
   updatePost: (postId: number, data: Partial<PostType>) => void;
 }

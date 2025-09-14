@@ -1,13 +1,16 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { Request, Response } from "express";
 import fs from "fs/promises";
 import jwt from "jsonwebtoken";
+import multer from "multer";
 import { RowDataPacket } from "mysql2";
 import path from "path";
 import { fileURLToPath } from "url";
 import { getDB } from "../config/db.js";
 import { refreshTokenPayload } from "../types/jwtPayload.types.js";
 import { LoginBody, SignupBody } from "../types/user.types.js";
+import { sendVerificationEmail } from "../utils/mailer.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,28 +19,106 @@ const __dirname = path.dirname(__filename);
 export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) => {
   const { username, email, password } = req.body;
   const hashedPassword: string = await bcrypt.hash(password, 10);
-  const value = [username, email, hashedPassword];
-  const query: string = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+
+  const query = "INSERT INTO users (username, email, password, isVerified) VALUES (?, ?, ?, ?)";
+  const query2 = "INSERT INTO verification_tokens (userId, token, expiresAt) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))";
+
+  let db;
+  let userId: number | null = null;
 
   try {
-    const db = getDB();
-    const [result] = await db.execute(query, value);
-    res.json({ success: true, id: (result as any).insertId });
+    db = await getDB().getConnection();
+
+    const [result] = await db.query(query, [username, email, hashedPassword, false]);
+
+    userId = (result as any).insertId;
+    const token = crypto.randomBytes(32).toString("hex");
+
+    await db.query(query2, [userId, token]);
+
+    try {
+      await sendVerificationEmail(email, token);
+    } catch (err) {
+      console.error("Failed to send verification email:", err);
+    }
+
+    res.json({
+      success: true,
+      message: "Signup successful. Please verify your email.",
+    });
   } catch (e: any) {
+    console.error("Signup error:", e);
+
+    if (userId && db) {
+      try {
+        await db.query("DELETE FROM users WHERE id = ?", [userId]);
+      } catch (deleteError) {
+        console.error("Failed to delete user during rollback:", deleteError);
+      }
+    }
+
+
     if (e.code === "ER_DUP_ENTRY") {
       return res.status(400).json({
         success: false,
         message: "Email already exists.",
       });
     }
-
-    console.error(e);
     return res.status(500).json({
       success: false,
       message: "Something went wrong. Please try again later.",
     });
+  } finally {
+    if (db) {
+      db.release();
+    }
   }
 
+};
+
+export const verifyEmail = async (req: Request, res: Response) => {
+  const { token } = req.query;
+
+  if (!token || typeof token !== "string") {
+    return res.status(400).json({ success: false, message: "Valid token is required" });
+  }
+  let db;
+
+  try {
+    db = await getDB().getConnection();
+
+    const [tokenRows] = await db.query<RowDataPacket[]>(
+      "SELECT * FROM verification_tokens WHERE token = ? AND expiresAt > NOW()",
+      [token]
+    );
+
+    if (tokenRows.length > 0) {
+      await db.query("UPDATE users SET isVerified = true WHERE id = ?", [tokenRows[0].userId]);
+      return res.json({ success: true, message: "Email verified successfully" });
+    }
+
+    const [userRows] = await db.query<RowDataPacket[]>(
+      `SELECT u.* FROM users u 
+       JOIN verification_tokens vt ON u.id = vt.userId 
+       WHERE vt.token = ? AND expiresAt < NOW()`,
+      [token]
+    );
+
+
+    if ((userRows.length > 0) && (userRows[0].isVerified === 0)) {
+      await db.query("DELETE FROM users WHERE id = ?", [userRows[0].id]);
+      await db.query("DELETE FROM verification_tokens WHERE userId = ?", [userRows[0].id]);
+      return res.status(400).json({ success: false, message: "Verification link has expired. Please try signing up again" });
+    }
+
+    return res.status(400).json({ success: false, message: "Verification link has expired." });
+
+  } catch (error: any) {
+    console.error("Verification error:", error.message);
+    res.status(500).json({ success: false, message: "Server error" });
+  } finally {
+    if (db) db.release();
+  }
 };
 
 export const login = async (
@@ -62,6 +143,15 @@ export const login = async (
       return res.status(401).json({ success: false, message: "Wrong Password" });
     }
 
+    if (!user.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email before logging in.",
+      });
+    }
+
+    await db.query("DELETE FROM verification_tokens WHERE userId = ?", [user.id]);
+
     const accessToken = jwt.sign(
       {
         userId: user.id,
@@ -78,6 +168,7 @@ export const login = async (
       { expiresIn: "7d" }
     );
 
+    await db.execute("DELETE FROM refresh_tokens WHERE fk_u_id = ?", [user.id]);
     await db.execute("INSERT INTO refresh_tokens (token, fk_u_id) VALUES (?, ?)", [
       refreshToken,
       user.id,
@@ -193,12 +284,15 @@ export const updateProfile = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+
+  if (req.file && req.file.size > 1 * 1024 * 1024) {
+    return res.status(400).json({ message: "Profile picture must be under 1MB" });
+  }
+
   const { username, password } = req.body;
   const newProfilePic = req.file ? req.file.filename : undefined;
   const fields: string[] = [];
   const values: any[] = [];
-  console.log("Body:", req.body);
-  console.log("File:", req.file);
 
   try {
     const db = getDB();
@@ -241,15 +335,48 @@ export const updateProfile = async (req: Request, res: Response) => {
 
     await db.execute(query, values);
 
-    res.json({ message: "Profile updated successfully" });
+    const [updatedRows] = await db.execute(
+      "SELECT id, username, profile_pic AS profilePic, created_at FROM users WHERE id = ?",
+      [req.user.userId]
+    );
+    const updatedUser = (updatedRows as any)[0];
+
+    res.json({
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+
+
   } catch (error: any) {
     console.error(error);
-    if (error instanceof Error && error.message.includes("File too large")) {
-      return res.status(400).json({ message: "Profile picture must be under 1MB" });
+    if (error instanceof multer.MulterError) {
+      if (error.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ message: "Profile picture must be under 1MB" });
+      }
     } else if (error instanceof Error && error.message.includes("Only images are allowed")) {
       return res.status(400).json({ message: "Invalid file type. Only images allowed" });
     }
+
     res.status(500).json({ message: "Something went wrong" });
   }
 };
+
+export const searchUser = async (req: Request, res: Response) => {
+  let { username } = req.query;
+  const query = "SELECT id, username, profile_pic AS profilePic FROM users WHERE username LIKE ? LIMIT 10";
+
+  if (!username || typeof username !== "string") {
+    return res.status(400).json({ message: "username query required" });
+  }
+  username = username.trim();
+
+  try {
+    const db = getDB();
+    const [rows] = await db.query(query, [`%${username}%`]);
+    res.json(rows);
+  } catch (error) {
+    console.error("Search error: ", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
 

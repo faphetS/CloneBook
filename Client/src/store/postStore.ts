@@ -3,20 +3,33 @@ import api from "../api/axios";
 import type { PostState, PostType } from "../types/post.types";
 
 
-export const usePostStore = create<PostState>((set) => ({
+export const usePostStore = create<PostState>((set, get) => ({
   posts: [],
   loading: true,
+  offset: 0,
+  limit: 10,
+  hasMore: true,
+
   setPosts: (posts) => set({ posts }),
+  resetPosts: () => set({ posts: [], offset: 0, hasMore: true }),
 
   fetchPosts: async () => {
+    const { offset, limit, posts, hasMore } = get();
+    if (!hasMore) return;
     set({ loading: true });
+
     try {
-      const res = await api.get("/content");
-      const posts: PostType[] = res.data.map((p: PostType) => ({
+      const res = await api.get(`/content?offset=${offset}&limit=${limit}`);
+      const newPosts: PostType[] = res.data.map((p: PostType) => ({
         ...p,
         isLiked: Boolean(p.isLiked),
       }));
-      set({ posts });
+
+      set({
+        posts: [...posts, ...newPosts],
+        offset: offset + newPosts.length,
+        hasMore: newPosts.length === limit,
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -25,14 +38,20 @@ export const usePostStore = create<PostState>((set) => ({
   },
 
   fetchUserPosts: async (userId: number) => {
+    const { offset, limit, posts, hasMore } = get();
+    if (!hasMore) return;
     set({ loading: true });
     try {
-      const res = await api.get(`/content/${userId}`);
-      const posts: PostType[] = res.data.map((p: PostType) => ({
+      const res = await api.get(`/content/${userId}?offset=${offset}&limit=${limit}`);
+      const newPosts: PostType[] = res.data.map((p: PostType) => ({
         ...p,
         isLiked: Boolean(p.isLiked),
       }));
-      set({ posts });
+      set({
+        posts: [...posts, ...newPosts],
+        offset: offset + newPosts.length,
+        hasMore: newPosts.length === limit,
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -49,6 +68,17 @@ export const usePostStore = create<PostState>((set) => ({
       },
       ...state.posts],
     })),
+
+  deletePost: async (postId: number) => {
+    try {
+      await api.delete(`/content/post/${postId}`);
+      set((state) => ({
+        posts: state.posts.filter((p) => p.id !== postId),
+      }));
+    } catch (err) {
+      console.error(err);
+    }
+  },
 
   toggleLike: (postId) =>
     set((state) => ({
@@ -69,7 +99,6 @@ export const usePostStore = create<PostState>((set) => ({
         p.id === postId ? { ...p, ...data } : p
       ),
     })),
-
 
 }));
 

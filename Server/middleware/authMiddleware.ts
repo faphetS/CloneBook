@@ -16,14 +16,14 @@ export const authenticateToken = (
   try {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
-    if (!token) return res.sendStatus(401);
+    if (!token) return res.status(401).json({ message: "Access token required" });
 
     jwt.verify(
       token,
       process.env.ACCESS_TOKEN_SECRET as string,
       (err, decoded) => {
-        if (err) return res.sendStatus(403);
-        if (typeof decoded === "string") return res.sendStatus(403);
+        if (err) return res.status(403).json({ message: "Invalid or expired token" });
+        if (typeof decoded === "string") return res.status(403).json({ message: "Invalid token format" });
 
         req.user = decoded as JwtPayload;
         next();
@@ -31,6 +31,6 @@ export const authenticateToken = (
     );
   } catch (err) {
     console.error("Auth middleware error:", err);
-    res.sendStatus(500);
+    res.status(500).json({ message: "Authentication error" });
   }
 };

@@ -1,11 +1,16 @@
 import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../../api/axios";
+import { useAuthStore } from "../../store/authStore";
 import { useCommentStore } from "../../store/commentStore";
 import { usePostStore } from "../../store/postStore";
+
+const MAX_LENGTH = 500;
 
 const CommentInput = ({ id }: { id: number }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [content, setContent] = useState("");
+  const { user } = useAuthStore();
   const { addComment } = useCommentStore();
   const { updatePost, posts } = usePostStore();
 
@@ -14,6 +19,14 @@ const CommentInput = ({ id }: { id: number }) => {
     if (el) {
       el.style.height = "auto";
       el.style.height = el.scrollHeight + "px";
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (e.target.value.length <= MAX_LENGTH) {
+      setContent(e.target.value);
+    } else {
+      setContent(e.target.value.slice(0, MAX_LENGTH));
     }
   };
 
@@ -37,42 +50,48 @@ const CommentInput = ({ id }: { id: number }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="pb-2 py-2 -mt-3 w-full flex flex-col"
+      className="pb-1 pt-4 -mt-3 w-full flex flex-col"
     >
       <div className="w-full min-h-12 flex items-center gap-3">
-        {/* Avatar */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-12 h-12 text-neutral-400 shrink-0"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 
-              7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 
-              0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 
-              0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 
-              3 3 0 0 1 6 0Z"
-          />
-        </svg>
+        <Link to={`/profile/${user?.id}`}>
+          {user?.profilePic ? (
+            <div className="min-w-12 min-h-12 flex items-center justify-center">
+              <img
+                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${user.profilePic}`}
+                alt={`${user.username}'s profile`}
+                className="w-11 h-11 rounded-full object-cover"
+              />
+            </div>
+
+          ) : (
+            <div className="min-w-12 min-h-12 flex items-center justify-center justify-center">
+              <img
+                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
+                alt={`${user?.username}'s profile`}
+                className="w-11 h-11 rounded-full object-cover border-2 border-neutral-800"
+              />
+            </div>
+          )}
+        </Link>
 
         {/* Input */}
         <div className="relative w-full flex items-center">
           <textarea
             ref={textareaRef}
-            onInput={handleInput}
-            rows={1}
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onInput={handleInput}
+            onChange={handleChange}
+            rows={1}
             placeholder="Write a comment..."
             className="w-full bg-neutral-700/30 rounded-2xl px-3 pr-9 py-2.5 text-white 
      focus:outline-none focus:ring-1 focus:ring-[#1877F2] 
      placeholder:text-neutral-400 overflow-y-hidden leading-tight resize-none"
           />
+          {content.length >= 200 && (
+            <span className="absolute bottom-1 right-3 text-xs text-neutral-400">
+              {content.length}/{MAX_LENGTH}
+            </span>
+          )}
           <button
             type="submit"
             className="absolute right-1 w-8 h-8 flex items-center justify-center 

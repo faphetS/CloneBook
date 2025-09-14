@@ -2,7 +2,7 @@ import { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { useAuthStore } from '../store/AuthStore';
+import { useAuthStore } from '../store/authStore';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -79,7 +79,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 disabled:bg-blue-400 hover:bg-blue-700 rounded-lg py-2 font-semibold transition-colors"
+            className="bg-[#1877F2] disabled:bg-[#3a8cff] hover:bg-[#3a8cff] rounded-lg py-2 font-semibold transition-colors"
           >
             {loading ? 'Logging in...' : 'Log In'}
           </button>
@@ -89,7 +89,7 @@ const Login = () => {
         <p className="text-sm text-center text-neutral-300">
           Don't have an account?{' '}
           <Link to='/signup'>
-            <span className="text-blue-400 hover:underline cursor-pointer">
+            <span className="text-[#3a8cff] hover:underline cursor-pointer">
               Sign up
             </span>
           </Link>

@@ -4,7 +4,7 @@ export function formatShortTime(date: Date) {
   const now = new Date();
 
   const minutes = differenceInMinutes(now, date);
-  if (minutes < 1) return "now"; // optional for <1m
+  if (minutes < 1) return "now";
   if (minutes < 60) return `${minutes}m`;
 
   const hours = differenceInHours(now, date);

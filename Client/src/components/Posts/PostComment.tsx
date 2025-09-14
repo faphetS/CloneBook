@@ -1,13 +1,16 @@
 
+import { Link } from "react-router-dom";
 import api from "../../api/axios";
+import { useAuthStore } from "../../store/authStore";
 import { useCommentStore } from "../../store/commentStore";
+import { usePostStore } from "../../store/postStore";
 import type { CommentType } from "../../types/comment.types";
 import { formatShortTime } from "../../utils/time";
 
-const PostComment = ({ id, postId, username, created_at, content, likeCount, isLiked }: CommentType) => {
-
-  const { toggleLike } = useCommentStore();
-
+const PostComment = ({ id, postId, userId, username, profilePic, created_at, content, likeCount, isLiked, postOwnerId }: CommentType) => {
+  const { toggleLike, deleteComment } = useCommentStore();
+  const { user } = useAuthStore();
+  const { updatePost, posts } = usePostStore();
   const handleLike = async () => {
     toggleLike(postId, id);
     try {
@@ -17,34 +20,59 @@ const PostComment = ({ id, postId, username, created_at, content, likeCount, isL
       toggleLike(postId, id);
     }
   }
+
+  const handleDelete = () => {
+    deleteComment(postId, id);
+    const currentPost = posts.find((p) => p.id === postId);
+    if (currentPost) {
+      updatePost(postId, { commentCount: Math.max((currentPost.commentCount || 0) - 1, 0) });
+    }
+  };
+
   return (
     <>
       <div className=" pb-2 py-2 -mt-3 w-full flex flex-col">
         <div className="w-full min-h-12 flex items-start gap-3">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-12 h-12 text-neutral-400 shrink-0"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 
-                7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 
-                0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 
-                0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 
-                3 3 0 0 1 6 0Z"
-            />
-          </svg>
+          <Link to={`/profile/${userId}`}>
+            {profilePic ? (
+              <div className="min-w-12 min-h-12 flex items-center justify-center">
+                <img
+                  src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${profilePic}`}
+                  alt={`${username}'s profile`}
+                  className="w-11 h-11 rounded-full object-cover"
+                />
+              </div>
+
+            ) : (
+              <div className="min-w-12 min-h-12 flex items-center justify-center justify-center">
+                <img
+                  src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
+                  alt={`${username}'s profile`}
+                  className="w-11 h-11 rounded-full object-cover border-2 border-neutral-800"
+                />
+              </div>
+            )}
+          </Link>
           <div>
-            <div className="flex flex-col bg-neutral-800 p-2 rounded-xl max-w-[596px] min-w-[100px] whitespace-pre-wrap break-words">
-              <p className="font-semibold leading-none">{username}</p>
+            <div className="flex flex-col bg-neutral-800 p-2 rounded-xl max-w-[555px] min-w-[100px] whitespace-pre-wrap break-words relative group/comment">
+              <Link to={`/profile/${userId}`}>
+                <p className="font-semibold leading-none hover:underline">{username}</p>
+              </Link>
               <p className="text-white text-xs mt-1 break-all">
                 {content}
               </p>
+              {(user?.id === userId || user?.id === postOwnerId) && (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none" viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  onClick={handleDelete}
+                  className="size-9 p-2 absolute top-1/2 -translate-y-1/2 -right-10 opacity-0 group-hover/comment:opacity-100 text-neutral-400 hover:text-red-600 hover:bg-neutral-700/90 cursor-pointer rounded-full">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+              )}
+
             </div>
 
             <div className="flex justify-between text-xs text-neutral-400 pl-1 pr-2">
@@ -91,6 +119,7 @@ const PostComment = ({ id, postId, username, created_at, content, likeCount, isL
               )}
             </div>
           </div>
+
 
         </div>
       </div>

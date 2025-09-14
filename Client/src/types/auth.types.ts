@@ -4,7 +4,7 @@ export interface User {
   email: string;
   role: string;
   profilePic: string;
-  created_at: string;
+  createdAt: string;
 }
 
 export interface AuthState {
@@ -13,4 +13,6 @@ export interface AuthState {
   login: (user: User, accessToken: string) => void;
   logout: () => void;
   setTokens: (accessToken: string) => void;
+  updateUser: (updatedUser: User) => void;
+  verifyEmail: (token: string) => Promise<{ success: boolean; message: string }>;
 }

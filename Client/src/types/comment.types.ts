@@ -3,26 +3,34 @@ export type CommentType = {
   userId: number;
   postId: number;
   username: string;
+  profilePic: string;
   content: string;
   created_at: string;
   likeCount: number;
   isLiked: boolean;
+  postOwnerId?: number;
 };
 
 export type CommentState = {
   comments: Record<number, CommentType[]>;
   loading: Record<number, boolean>;
-  setComments: (postId: number, comments: CommentType[]) => void;
-  fetchComments: (postId: number) => Promise<void>;
+  loadingMore: Record<number, boolean>;
+  offsets: Record<number, number>;
+  limits: Record<number, number>;
+  hasMore: Record<number, boolean>;
+
+  setComments: (
+    postId: number,
+    newComments: CommentType[],
+    offset: number,
+    limit: number
+  ) => void;
+  resetComments: (postId: number) => void;
+  fetchComments: (postId: number, loadMore?: boolean) => Promise<void>;
   addComment: (postId: number, comment: CommentType) => void;
+  deleteComment: (postId: number, commentId: number) => Promise<void>;
   toggleLike: (postId: number, commentId: number) => void;
 };
-
-export type CommentProp = {
-  username: string;
-  created_at: string;
-  content: string;
-}
 
 export type CommentInputProps = {
   onSubmit: (text: string) => void;
