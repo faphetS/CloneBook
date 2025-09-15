@@ -8,11 +8,11 @@ const Header: React.FC = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-neutral-900 px-4 flex justify-between items-center text-base">
 
-      <div className="flex items-center gap-4 min-w-0">
+      <div className="flex  items-center gap-4 min-w-[200px]">
         <Link to="/" className="hidden sm:block">
           <div className="font-bold cursor-pointer">CloneBook</div>
         </Link>
-        <div className="flex-1 min-w-[370px]">
+        <div className="flex-1 min-w-0">
           <SearchInput />
         </div>
       </div>
