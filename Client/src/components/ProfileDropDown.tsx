@@ -102,7 +102,7 @@ const ProfileDropDown = () => {
             >
               <div className="relative">
                 <img
-                  src={profile?.profilePic || `/user.svg`}
+                  src={user?.profilePic || `/user.svg`}
                   alt={`${user?.username}'s profile`}
                   className={`w-11 h-11 rounded-full object-cover ${user?.profilePic ? ("") : ("border border-neutral-800")}`}
                 />
