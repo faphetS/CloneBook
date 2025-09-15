@@ -13,6 +13,7 @@ export interface PostType {
 export interface PostState {
   posts: PostType[];
   loading: boolean;
+  posting: boolean;
   offset: number;
   limit: number;
   hasMore: boolean;

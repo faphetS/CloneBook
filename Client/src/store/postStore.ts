@@ -6,6 +6,7 @@ import type { PostState, PostType } from "../types/post.types";
 export const usePostStore = create<PostState>((set, get) => ({
   posts: [],
   loading: true,
+  posting: false,
   offset: 0,
   limit: 10,
   hasMore: true,
@@ -61,7 +62,7 @@ export const usePostStore = create<PostState>((set, get) => ({
 
   createPost: async (content: string) => {
     if (!content.trim()) return false;
-    set({ loading: true });
+    set({ posting: true });
 
     try {
       const res = await api.post("/content/post", { content });
@@ -83,7 +84,7 @@ export const usePostStore = create<PostState>((set, get) => ({
       console.error("Post failed", err);
       return false;
     } finally {
-      set({ loading: false });
+      set({ posting: false });
     }
   },
 
