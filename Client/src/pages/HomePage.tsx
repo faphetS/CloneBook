@@ -65,17 +65,14 @@ const HomePage = () => {
               {/* Post content */}
               <div className="w-full max-w-[640px] h-16 rounded bg-neutral-700"></div>
 
-              {/* Like & comment counts */}
               <div className="flex justify-between w-full max-w-[640px] h-4">
                 <div className="w-12 h-3 rounded bg-neutral-700"></div>
                 <div className="w-16 h-3 rounded bg-neutral-700"></div>
               </div>
 
-              {/* Action buttons: Like / Comment */}
-              <div className="flex justify-around items-center border-t border-neutral-700 w-full p-1">
-                <div className="w-full h-8 rounded bg-neutral-700"></div>
-                <div className="w-full h-8 rounded bg-neutral-700"></div>
-              </div>
+
+              <div className="w-full max-w-[640px] h-8"></div>
+
             </div>
           )}
 

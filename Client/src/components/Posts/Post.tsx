@@ -139,12 +139,9 @@ const Post = ({ id, userId, username, content, profilePic, created_at, likeCount
             <div className="w-full flex gap-3 p-2 animate-pulse">
               {/* Profile pic */}
               <div className="w-11 h-11 rounded-full bg-neutral-700"></div>
+
               {/* Comment body */}
-              <div className="flex-1 flex flex-col gap-2">
-                <div className="w-24 h-4 rounded bg-neutral-700"></div>
-                <div className="w-16 h-3 rounded bg-neutral-800"></div>
-                <div className="w-full h-10 rounded bg-neutral-700"></div>
-              </div>
+              <div className="w-64 h-20 rounded bg-neutral-700"></div>
             </div>
           ) : (
             <>
