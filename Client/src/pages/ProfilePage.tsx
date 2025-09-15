@@ -251,8 +251,31 @@ const ProfilePage = () => {
           )}
 
           {loading && (
-            <div className="bg-neutral-900 flex items-center justify-center w-full h-[125px] rounded-2xl">
-              <div className="bg-transparent w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
+            <div className="bg-neutral-900 w-full flex flex-col items-center rounded-2xl px-3 pt-3 gap-3 animate-pulse">
+
+              {/* Header: Profile pic + username */}
+              <div className="w-full flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-neutral-700"></div>
+                <div className="flex flex-col gap-1">
+                  <div className="w-24 h-4 rounded bg-neutral-700"></div>
+                  <div className="w-16 h-3 rounded bg-neutral-800"></div>
+                </div>
+              </div>
+
+              {/* Post content */}
+              <div className="w-full max-w-[640px] h-16 rounded bg-neutral-700"></div>
+
+              {/* Like & comment counts */}
+              <div className="flex justify-between w-full max-w-[640px] h-4">
+                <div className="w-12 h-3 rounded bg-neutral-700"></div>
+                <div className="w-16 h-3 rounded bg-neutral-700"></div>
+              </div>
+
+              {/* Action buttons: Like / Comment */}
+              <div className="flex justify-around items-center border-t border-neutral-700 w-full p-1">
+                <div className="w-full h-8 rounded bg-neutral-700"></div>
+                <div className="w-full h-8 rounded bg-neutral-700"></div>
+              </div>
             </div>
           )}
 
