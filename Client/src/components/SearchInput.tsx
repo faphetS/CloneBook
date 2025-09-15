@@ -79,11 +79,7 @@ const SearchInput = () => {
                 <Link to={`/profile/${user.id}`} key={user.id}>
                   <div className="flex items-center gap-2 p-2 hover:bg-neutral-800/60 rounded-lg cursor-pointer">
                     <img
-                      src={
-                        user?.profilePic
-                          ? `${import.meta.env.VITE_API_DOMAIN}/uploads/${user.profilePic}`
-                          : `/user.svg`
-                      }
+                      src={user?.profilePic || `/user.svg`}
                       alt={`${user?.username}'s profile`}
                       className={`w-11 h-11 rounded-full object-cover ${user?.profilePic ? "" : "border border-neutral-800"
                         }`}

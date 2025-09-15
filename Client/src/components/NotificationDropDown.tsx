@@ -152,10 +152,7 @@ const NotificationDropdown = () => {
                     >
                       <Link to={`/profile/${n.senderId}`} className="flex-shrink-0">
                         <img
-                          src={n.profilePic
-                            ? `${import.meta.env.VITE_API_DOMAIN}/uploads/${n.profilePic}`
-                            : `user.svg`
-                          }
+                          src={n?.profilePic || `/user.svg`}
                           alt={n.senderName}
                           className={`w-11 h-11 rounded-full object-cover ${n.profilePic ? ("") : ("border border-neutral-800")}`}
                         />

@@ -102,11 +102,7 @@ const ProfileDropDown = () => {
             >
               <div className="relative">
                 <img
-                  src={
-                    user?.profilePic
-                      ? `${import.meta.env.VITE_API_DOMAIN}/uploads/${user.profilePic}`
-                      : `/user.svg`
-                  }
+                  src={profile?.profilePic || `/user.svg`}
                   alt={`${user?.username}'s profile`}
                   className={`w-11 h-11 rounded-full object-cover ${user?.profilePic ? ("") : ("border border-neutral-800")}`}
                 />

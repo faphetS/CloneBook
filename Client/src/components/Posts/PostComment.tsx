@@ -33,26 +33,17 @@ const PostComment = ({ id, postId, userId, username, profilePic, created_at, con
     <>
       <div className=" pb-2 py-2 -mt-3 w-full flex flex-col">
         <div className="w-full min-h-12 flex items-start gap-3">
-          <Link to={`/profile/${userId}`}>
-            {profilePic ? (
-              <div className="min-w-12 min-h-12 flex items-center justify-center">
-                <img
-                  src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${profilePic}`}
-                  alt={`${username}'s profile`}
-                  className="w-11 h-11 rounded-full object-cover"
-                />
-              </div>
 
-            ) : (
-              <div className="min-w-12 min-h-12 flex items-center justify-center justify-center">
-                <img
-                  src={`/user.svg`}
-                  alt={`${username}'s profile`}
-                  className="w-11 h-11 rounded-full object-cover border-2 border-neutral-800"
-                />
-              </div>
-            )}
+          <Link to={`/profile/${userId}`}>
+            <div className="min-w-12 min-h-12 flex items-center justify-center">
+              <img
+                src={profilePic || "/user.svg"}
+                alt={`${username}'s profile`}
+                className={`w-11 h-11 rounded-full object-cover ${profilePic ? ("") : ("border-2 border-neutral-800")}`}
+              />
+            </div>
           </Link>
+
           <div>
             <div className="flex flex-col bg-neutral-800 p-2 rounded-xl max-w-[555px] min-w-[100px] whitespace-pre-wrap break-words relative group/comment">
               <Link to={`/profile/${userId}`}>

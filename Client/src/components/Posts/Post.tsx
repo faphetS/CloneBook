@@ -38,25 +38,15 @@ const Post = ({ id, userId, username, content, profilePic, created_at, likeCount
     <div className="bg-neutral-900 w-full flex flex-col items-center rounded-2xl px-3 pt-3 gap-3 relative group">
 
       <div className="w-full min-h-12 flex items-center gap-3">
-        <Link to={`/profile/${userId}`}>
-          {profilePic ? (
-            <div className="min-w-12 min-h-12 flex items-center justify-center">
-              <img
-                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${profilePic}`}
-                alt={`${username}'s profile`}
-                className="w-11 h-11 rounded-full object-cover border-neutral-800"
-              />
-            </div>
 
-          ) : (
-            <div className="min-w-[48px] min-h-[48px] flex items-center justify-center">
-              <img
-                src={`/user.svg`}
-                alt={`${username}'s profile`}
-                className="w-11 h-11 rounded-full object-cover border-2 border-neutral-800"
-              />
-            </div>
-          )}
+        <Link to={`/profile/${userId}`}>
+          <div className="min-w-12 min-h-12 flex items-center justify-center">
+            <img
+              src={profilePic || "/user.svg"}
+              alt={`${username}'s profile`}
+              className={`w-11 h-11 rounded-full object-cover ${profilePic ? ("") : ("border-2 border-neutral-800")}`}
+            />
+          </div>
         </Link>
 
         <div className="flex flex-col">

@@ -162,19 +162,11 @@ const FriendReq = () => {
                         className="flex items-top gap-3 px-4 py-3 cursor-pointer hover:bg-neutral-800/60"
                       >
                         <Link to={`/profile/${req.senderId}`} className="flex-shrink-0">
-                          {req.senderProfilePic ? (
-                            <img
-                              src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${req.senderProfilePic}`}
-                              alt={req.senderName}
-                              className="w-11 h-11 rounded-full object-cover"
-                            />
-                          ) : (
-                            <img
-                              src={`user.svg`}
-                              alt={req.senderName}
-                              className={`w-11 h-11 rounded-full object-cover ${req.senderProfilePic ? ("") : ("border border-neutral-800")}`}
-                            />
-                          )}
+                          <img
+                            src={req?.senderProfilePic || `/user.svg`}
+                            alt={req.senderName}
+                            className={`w-11 h-11 rounded-full object-cover ${req.senderProfilePic ? ("") : ("border border-neutral-800")}`}
+                          />
                         </Link>
 
                         <div className="flex flex-col flex-1 min-w-0">

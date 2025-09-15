@@ -43,26 +43,17 @@ const Poster = () => {
   return (
     < form onSubmit={handleSubmit} className="bg-neutral-900 w-full flex flex-col items-center rounded-2xl px-3 pt-3 gap-3" >
       <div className="w-full min-h-12 flex items-center gap-3 relative">
-        <Link to={`/profile/${user?.id}`}>
-          {user?.profilePic ? (
-            <div className="min-w-12 min-h-12 flex items-center justify-center">
-              <img
-                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/${user.profilePic}`}
-                alt={`${user.username}'s profile`}
-                className="w-11 h-11 rounded-full object-cover"
-              />
-            </div>
 
-          ) : (
-            <div className="min-w-12 min-h-12 flex items-center justify-center justify-center">
-              <img
-                src={`/user.svg`}
-                alt={`${user?.username}'s profile`}
-                className="w-11 h-11 rounded-full object-cover border-2 border-neutral-800"
-              />
-            </div>
-          )}
+        <Link to={`/profile/${user?.id}`}>
+          <div className="min-w-12 min-h-12 flex items-center justify-center">
+            <img
+              src={user?.profilePic || `/user.svg`}
+              alt={`${user?.username}'s profile`}
+              className={`w-11 h-11 rounded-full object-cover ${user?.profilePic ? ("") : ("border-2 border-neutral-800")}`}
+            />
+          </div>
         </Link>
+
         <textarea
           ref={textareaRef}
           value={content}
