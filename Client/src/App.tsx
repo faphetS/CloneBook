@@ -18,7 +18,7 @@ const App = () => {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center w-full h-[100vh]">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700">
         <div className="bg-transparent w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
       </div>
     );
