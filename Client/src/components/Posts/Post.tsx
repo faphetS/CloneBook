@@ -136,13 +136,23 @@ const Post = ({ id, userId, username, content, profilePic, created_at, likeCount
       {toggleComment && (
         <div className="w-full">
           {loading[id] ? (
-            <div className="w-full flex gap-3 p-2 animate-pulse">
-              {/* Profile pic */}
-              <div className="w-11 h-11 rounded-full bg-neutral-700"></div>
+            <>
+              <div className="w-full flex gap-3 p-2 animate-pulse">
+                {/* Profile pic */}
+                <div className="w-11 h-11 rounded-full bg-neutral-700"></div>
 
-              {/* Comment body */}
-              <div className="w-64 h-20 rounded bg-neutral-700"></div>
-            </div>
+                {/* Comment body */}
+                <div className="w-[300px] h-20 rounded bg-neutral-700"></div>
+              </div>
+
+              <div className="w-full flex gap-3 p-2 animate-pulse">
+                {/* Profile pic */}
+                <div className="w-11 h-11 rounded-full bg-neutral-700"></div>
+
+                {/* Comment body */}
+                <div className="w-[350px] h-20 rounded bg-neutral-700"></div>
+              </div>
+            </>
           ) : (
             <>
               <div className="max-h-[400px] overflow-y-auto overflow-x-hidden pt-1 pr-2 custom-scrollbar">
