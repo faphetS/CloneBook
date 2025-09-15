@@ -11,6 +11,8 @@ export const createPost = async (req: Request, res: Response) => {
   }
   const { content } = req.body;
   const userId: number = req.user.userId;
+  if (!content) return res.status(400).json({ success: false, message: "Nothing to post." });
+
   const insertQuery = "INSERT INTO posts (fk_u_id, content) VALUES (?, ?)";
   const selectQuery = `
       SELECT 
@@ -19,19 +21,28 @@ export const createPost = async (req: Request, res: Response) => {
         posts.created_at, 
         users.id AS userId,
         users.username,
-        users.profile_pic AS profilePic
+        users.profile_pic AS profilePic,
+        users.profile_pic_type AS picType
       FROM posts 
       JOIN users ON posts.fk_u_id = users.id 
       WHERE posts.id = ?
     `;
   try {
     const db = getDB();
-
-    if (!content) return res.status(400).json({ success: false, message: "Nothing to post." });
     const [result]: any = await db.execute(insertQuery, [userId, content]);
     const [rows]: any = await db.execute(selectQuery, [result.insertId]);
 
-    res.status(201).json(rows[0]);
+    const post = rows[0];
+
+    let profilePicBase64: string | null = null;
+    if (post.profilePic) {
+      profilePicBase64 = `data:${post.picType};base64,${Buffer.from(post.profilePic).toString('base64')}`;
+    }
+
+    res.status(201).json({
+      ...post,
+      profilePic: profilePicBase64,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -54,20 +65,33 @@ export const getPosts = async (req: Request, res: Response) => {
     users.id AS userId, 
     users.username, 
     users.profile_pic AS profilePic,
+    users.profile_pic_type AS picType,
     COUNT(likes.id) AS likeCount,
     CASE WHEN SUM(CASE WHEN likes.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked,
     (SELECT COUNT(*) FROM comments c WHERE c.fk_p_id = posts.id) AS commentCount
   FROM posts 
   JOIN users ON posts.fk_u_id = users.id
   LEFT JOIN likes ON posts.id = likes.fk_p_id
-  GROUP BY posts.id, posts.content, posts.created_at, users.id, users.username 
+  GROUP BY posts.id, posts.content, posts.created_at, users.id, users.username, users.profile_pic, users.profile_pic_type 
   ORDER BY posts.created_at DESC
    LIMIT ? OFFSET ?
 `;
   try {
     const db = getDB();
-    const [rows] = await db.query(query, [req.user.userId, limit, offset]);
-    res.json(rows);
+    const [rows] = await db.query<RowDataPacket[]>(query, [req.user.userId, limit, offset]);
+
+    const posts = rows.map((post: any) => {
+      let profilePicBase64: string | null = null;
+      if (post.profilePic) {
+        profilePicBase64 = `data:${post.picType};base64,${Buffer.from(post.profilePic).toString('base64')}`;
+      }
+      return {
+        ...post,
+        profilePic: profilePicBase64,
+      };
+    });
+
+    res.json(posts);
   } catch (error: any) {
     res.status(500).json({ error: "Failed to fetch posts" });
   }
@@ -90,6 +114,7 @@ export const getUserPosts = async (req: Request, res: Response) => {
       users.id AS userId,
       users.username, 
       users.profile_pic AS profilePic,
+      users.profile_pic_type AS picType,
       COUNT(likes.id) AS likeCount,
       CASE WHEN SUM(CASE WHEN likes.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked,
       (SELECT COUNT(*) FROM comments c WHERE c.fk_p_id = posts.id) AS commentCount
@@ -97,14 +122,26 @@ export const getUserPosts = async (req: Request, res: Response) => {
     JOIN users ON posts.fk_u_id = users.id
     LEFT JOIN likes ON posts.id = likes.fk_p_id
     WHERE users.id = ?
-    GROUP BY posts.id, posts.content, posts.created_at, users.id, users.username 
+    GROUP BY posts.id, posts.content, posts.created_at, users.id, users.username, users.profile_pic, users.profile_pic_type
     ORDER BY posts.created_at DESC
     LIMIT ? OFFSET ?
   `;
   try {
     const db = getDB();
-    const [rows] = await db.query(query, [req.user.userId, userId, limit, offset]);
-    res.json(rows);
+    const [rows] = await db.query<RowDataPacket[]>(query, [req.user.userId, userId, limit, offset]);
+
+    const posts = rows.map((post) => {
+      let profilePicBase64: string | null = null;
+      if (post.profilePic) {
+        profilePicBase64 = `data:${post.picType};base64,${Buffer.from(post.profilePic).toString('base64')}`;
+      }
+      return {
+        ...post,
+        profilePic: profilePicBase64,
+      };
+    });
+
+    res.json(posts);
   } catch (error: any) {
     console.log("Error fetching posts:", error.message || error);
     res.status(500).json({ error: "Failed to fetch User posts" });
@@ -202,29 +239,42 @@ export const getComments = async (req: Request, res: Response) => {
   const offset = Number(req.query.offset) || 0;
   const postId: number = parseInt(req.params.postId);
   const query = `
-SELECT 
-  c.id, 
-  c.content, 
-  c.created_at, 
-  c.fk_u_id AS userId,
-   c.fk_p_id AS postId,
-  u.username,
-  u.profile_pic AS profilePic,
-  COUNT(cl.id) AS likeCount,
-  CASE WHEN SUM(CASE WHEN cl.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked
-FROM comments c
-JOIN users u ON u.id = c.fk_u_id
-LEFT JOIN comment_likes cl ON c.id = cl.fk_c_id
-WHERE c.fk_p_id = ?
-GROUP BY c.id, c.content, c.created_at, u.username, c.fk_u_id
-ORDER BY c.created_at ASC
-LIMIT ? OFFSET ?
-`;
+    SELECT 
+      c.id, 
+      c.content, 
+      c.created_at, 
+      c.fk_u_id AS userId,
+      c.fk_p_id AS postId,
+      u.username,
+      u.profile_pic AS profilePic,
+      u.profile_pic_type AS picType,
+      COUNT(cl.id) AS likeCount,
+      CASE WHEN SUM(CASE WHEN cl.fk_u_id = ? THEN 1 ELSE 0 END) > 0 THEN 1 ELSE 0 END AS isLiked
+    FROM comments c
+    JOIN users u ON u.id = c.fk_u_id
+    LEFT JOIN comment_likes cl ON c.id = cl.fk_c_id
+    WHERE c.fk_p_id = ?
+    GROUP BY c.id, c.content, c.created_at, u.username, c.fk_u_id, u.profile_pic, u.profile_pic_type
+    ORDER BY c.created_at ASC
+    LIMIT ? OFFSET ?
+  `;
 
   try {
     const db = getDB();
     const [result]: any = await db.query(query, [req.user.userId, postId, limit, offset]);
-    res.json(result)
+
+    const comments = result.map((c: any) => {
+      let profilePicBase64: string | null = null;
+      if (c.profilePic) {
+        profilePicBase64 = `data:${c.picType};base64,${Buffer.from(c.profilePic).toString('base64')}`;
+      }
+      return {
+        ...c,
+        profilePic: profilePicBase64,
+      };
+    });
+
+    res.json(comments);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to fetch comments" });
@@ -250,6 +300,7 @@ export const postComment = async (req: Request, res: Response) => {
       c.created_at, 
       c.fk_u_id AS userId, 
       u.profile_pic AS profilePic,
+      u.profile_pic_type AS picType,
       u.username
     FROM comments c
     JOIN users u ON u.id = c.fk_u_id
@@ -277,7 +328,9 @@ export const postComment = async (req: Request, res: Response) => {
       postId,
       userId: rows[0].userId,
       username: rows[0].username,
-      profilePic: rows[0].profilePic,
+      profilePic: rows[0].profilePic ?
+        `data:${rows[0].picType};base64,${Buffer.from(rows[0].profilePic).toString('base64')}`
+        : null,
       content: rows[0].content,
       created_at: rows[0].created_at,
     });

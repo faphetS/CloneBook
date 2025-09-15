@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { RowDataPacket } from "mysql2";
 import { getDB } from "../config/db.js";
 
 //helper
@@ -29,7 +30,8 @@ export const getNotif = async (req: Request, res: Response) => {
         n.created_at AS createdAt, 
         n.sender_id AS senderId,
         u.username AS senderName,
-        u.profile_pic AS profilePic
+        u.profile_pic AS profilePic,
+        u.profile_pic_type AS picType
       FROM notifications n
       JOIN users u ON n.sender_id = u.id
       WHERE n.user_id = ?
@@ -39,8 +41,20 @@ export const getNotif = async (req: Request, res: Response) => {
 
   try {
     const db = getDB();
-    const [rows]: any = await db.query(query, [req.user.userId, limit, offset]);
-    res.json(rows);
+    const [rows]: any = await db.query<RowDataPacket[]>(query, [req.user.userId, limit, offset]);
+
+    const notifications = rows.map((notif: any) => {
+      let profilePicBase64: string | null = null;
+      if (notif.profilePic) {
+        profilePicBase64 = `data:${notif.picType};base64,${Buffer.from(notif.profilePic).toString('base64')}`;
+      }
+      return {
+        ...notif,
+        profilePic: profilePicBase64,
+      };
+    });
+
+    res.json(notifications);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

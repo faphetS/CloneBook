@@ -167,6 +167,7 @@ export const getFriendRequests = async (req: Request, res: Response) => {
       fr.sender_id AS senderId,
       u.username AS senderName,
       u.profile_pic AS senderProfilePic,
+      u.profile_pic_type AS picType,
       fr.created_at AS createdAt
     FROM friend_requests fr
     JOIN users u ON fr.sender_id = u.id
@@ -179,7 +180,18 @@ export const getFriendRequests = async (req: Request, res: Response) => {
     const db = getDB();
     const [rows] = await db.query<RowDataPacket[]>(query, [req.user.userId, limit, offset]);
 
-    res.json(rows);
+    const requests = rows.map((user) => {
+      let profilePicBase64: string | null = null;
+      if (user.senderProfilePic) {
+        profilePicBase64 = `data:${user.picType};base64,${Buffer.from(user.senderProfilePic).toString("base64")}`;
+      }
+      return {
+        ...user,
+        senderProfilePic: profilePicBase64,
+      };
+    });
+
+    res.json(requests);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch friend requests" });
@@ -195,7 +207,8 @@ export const getFriends = async (req: Request, res: Response) => {
   const query = `SELECT 
   u.id, 
   u.username, 
-  u.profile_pic AS profilePic
+  u.profile_pic AS profilePic,
+  u.profile_pic_type AS picType
   FROM friends f
   JOIN users u ON f.friend_id = u.id
   WHERE f.user_id = ? 
@@ -208,8 +221,18 @@ export const getFriends = async (req: Request, res: Response) => {
       [req.user.userId, limit, offset]
     );
 
+    const friends = rows.map(friend => {
+      let profilePicBase64: string | null = null;
+      if (friend.profilePic) {
+        profilePicBase64 = `data:${friend.picType};base64,${Buffer.from(friend.profilePic).toString('base64')}`;
+      }
+      return {
+        ...friend,
+        profilePic: profilePicBase64,
+      };
+    });
 
-    res.json(rows);
+    res.json(friends);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch friends" });

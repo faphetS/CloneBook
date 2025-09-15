@@ -180,6 +180,11 @@ export const login = async (
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    let profilePicBase64: string | null = null;
+    if (user.profile_pic) {
+      profilePicBase64 = `data:${user.profile_pic_type};base64,${Buffer.from(user.profile_pic).toString('base64')}`;
+    }
+
     res.json({
       success: true,
       accessToken,
@@ -188,7 +193,7 @@ export const login = async (
         username: user.username,
         email: user.email,
         role: user.role,
-        profilePic: user.profile_pic,
+        profilePic: profilePicBase64,
         created_at: user.created_at
       }
     });
@@ -265,6 +270,7 @@ export const getUserInfo = async (req: Request, res: Response) => {
     users.email,
     users.created_at AS createdAt,
     users.profile_pic AS profilePic,
+    users.profile_pic_type AS picType,
     users.role
     FROM users
     WHERE users.id = ?
@@ -272,7 +278,17 @@ export const getUserInfo = async (req: Request, res: Response) => {
   try {
     const db = getDB();
     const [rows] = await db.execute<RowDataPacket[]>(query, [userId]);
-    res.json(rows[0]);
+    const user = rows[0];
+
+    let profilePicBase64: string | null = null;
+    if (user?.profilePic) {
+      profilePicBase64 = `data:${user.picType};base64,${Buffer.from(user.profilePic).toString('base64')}`;
+    }
+
+    res.json({
+      ...user,
+      profilePic: profilePicBase64,
+    });
   } catch (error: any) {
     console.log("Error fetching user data:", error.message || error);
     res.status(500).json({ error: "Failed to fetch user data" });
@@ -373,7 +389,7 @@ export const updateProfile = async (req: Request, res: Response) => {
 
 export const searchUser = async (req: Request, res: Response) => {
   let { username } = req.query;
-  const query = "SELECT id, username, profile_pic AS profilePic FROM users WHERE username LIKE ? LIMIT 10";
+  const query = "SELECT id, username, profile_pic AS profilePic, profile_pic_type AS picType FROM users WHERE username LIKE ? LIMIT 10";
 
   if (!username || typeof username !== "string") {
     return res.status(400).json({ message: "username query required" });
@@ -382,8 +398,19 @@ export const searchUser = async (req: Request, res: Response) => {
 
   try {
     const db = getDB();
-    const [rows] = await db.query(query, [`%${username}%`]);
-    res.json(rows);
+    const [rows] = await db.query<RowDataPacket[]>(query, [`%${username}%`]);
+    const users = rows.map((user: any) => {
+      let profilePicBase64: string | null = null;
+      if (user.profilePic) {
+        profilePicBase64 = `data:${user.picType};base64,${Buffer.from(user.profilePic).toString('base64')}`;
+      }
+      return {
+        ...user,
+        profilePic: profilePicBase64,
+      };
+    });
+
+    res.json(users);
   } catch (error) {
     console.error("Search error: ", error);
     res.status(500).json({ message: "Server error" });
