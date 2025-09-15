@@ -50,7 +50,7 @@ const RightNav = () => {
                 src={
                   f.profilePic
                     ? `${import.meta.env.VITE_API_DOMAIN}/uploads/${f.profilePic}`
-                    : `${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`
+                    : `/user.svg`
                 }
                 alt={`${f.username}'s profile`}
                 className={`w-11 h-11 rounded-full object-cover ${f.profilePic ? "" : "border border-neutral-900"

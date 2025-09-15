@@ -93,11 +93,7 @@ const ProfilePage = () => {
                 <div className="w-[162px] h-[162px] rounded-full bg-neutral-700 animate-pulse" />
               ) : (
                 <img
-                  src={
-                    profile?.profilePic
-                      ? `${import.meta.env.VITE_API_DOMAIN}/uploads/${profile.profilePic}`
-                      : `${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`
-                  }
+                  src={profile?.profilePic || `/user.svg`}
                   alt={`${profile?.username}'s profile`}
                   className="w-[162px] h-[162px] rounded-full object-cover border-2 border-neutral-900"
                 />

@@ -51,7 +51,7 @@ const Post = ({ id, userId, username, content, profilePic, created_at, likeCount
           ) : (
             <div className="min-w-[48px] min-h-[48px] flex items-center justify-center">
               <img
-                src={`${import.meta.env.VITE_API_DOMAIN}/uploads/user.svg`}
+                src={`/user.svg`}
                 alt={`${username}'s profile`}
                 className="w-11 h-11 rounded-full object-cover border-2 border-neutral-800"
               />
