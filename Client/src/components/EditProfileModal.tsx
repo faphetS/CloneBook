@@ -5,7 +5,7 @@ import { Fragment, useEffect, useState } from "react";
 interface EditProfileModalProps {
   isOpen: boolean;
   closeModal: () => void;
-  onSave: (data: { username: string; password: string; profilePic: File | null }) => void;
+  onSave: (data: { username: string; password: string; profilePic: File | null }) => void | Promise<void>;
   currentUsername: string;
   currentProfilePicUrl?: string;
 }
@@ -16,6 +16,7 @@ const EditProfileModal = ({ isOpen, closeModal, onSave, currentUsername, current
   const [profilePic, setProfilePic] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(currentProfilePicUrl);
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setUsername(currentUsername);
@@ -49,10 +50,15 @@ const EditProfileModal = ({ isOpen, closeModal, onSave, currentUsername, current
     closeModal();
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (error) return;
-    onSave({ username, password, profilePic });
-    closeModal();
+    setLoading(true);
+    try {
+      await onSave({ username, password, profilePic });
+      closeModal();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -62,8 +68,13 @@ const EditProfileModal = ({ isOpen, closeModal, onSave, currentUsername, current
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }} className="bg-neutral-900 rounded-2xl w-full max-w-md p-6 space-y-6">
 
-            {error && <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-2 py-2 rounded-md text-sm text-center">{error}</div>}
-            <h2 className="text-xl font-semibold text-white text-center">Edit Profile</h2>
+            {error ?
+              (<div className="bg-red-500/20 border border-red-500/50 text-red-200 px-2 py-2 rounded-md text-sm text-center">{error}</div>)
+              :
+              (
+                <h2 className="text-xl font-semibold text-white text-center">Edit Profile</h2>
+              )}
+
 
             <div className="flex flex-col items-center gap-4">
               <img
@@ -91,7 +102,33 @@ const EditProfileModal = ({ isOpen, closeModal, onSave, currentUsername, current
 
             <div className="flex justify-end gap-2 mt-4">
               <button onClick={handleCancel} className="px-4 py-2 rounded-md bg-neutral-700 hover:bg-neutral-600 text-white transition">Cancel</button>
-              <button onClick={handleSave} disabled={!!error} className="px-4 py-2 rounded-md bg-[#1877F2] disabled:bg-[#3a8cff]/50 hover:bg-[#3a8cff] text-white transition">Save</button>
+              <button onClick={handleSave} disabled={!!error || loading} className="px-4 py-2 rounded-md bg-[#1877F2] disabled:bg-[#3a8cff]/50 hover:bg-[#3a8cff] text-white transition">
+                {loading ?
+                  (
+                    <svg
+                      className="animate-spin h-5 w-5 mr-2 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
+                  )
+                  :
+                  ("Save")}
+              </button>
             </div>
           </motion.div>
         </div>
