@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../../api/axios";
 import { useAuthStore } from "../../store/autStore";
 import { usePostStore } from "../../store/postStore";
 
@@ -9,7 +8,7 @@ const MAX_LENGTH = 500;
 const Poster = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { user } = useAuthStore();
-  const { addPost } = usePostStore();
+  const { createPost, loading } = usePostStore();
   const [content, setContent] = useState("");
 
   const handleInput = () => {
@@ -32,9 +31,10 @@ const Poster = () => {
     e.preventDefault();
 
     try {
-      const res = await api.post('/content/post', { content });
-      addPost(res.data);
-      setContent("");
+      const success = await createPost(content);
+      if (success) {
+        setContent("");
+      }
     } catch (err) {
       console.error("Post failed", err);
       setContent("");
@@ -59,6 +59,14 @@ const Poster = () => {
           value={content}
           onInput={handleInput}
           onChange={handleChange}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              if (!loading) {
+                handleSubmit(e as unknown as React.FormEvent);
+              }
+            }
+          }}
           rows={1}
           placeholder={`What's on your mind, ${user?.username}?`}
           className="w-full bg-neutral-700/30 rounded-2xl px-3 py-2.5 text-white focus:outline-none focus:ring-1 focus:ring-[#1877F2] placeholder:text-neutral-400 overflow-y-hidden leading-tight resize-none whitespace-pre-wrap break-all"
@@ -71,7 +79,12 @@ const Poster = () => {
       </div>
       <div className="flex justify-around items-center border-t border-neutral-700 w-full p-1">
         <button onClick={() => setContent("")} className="hover:bg-neutral-700/50 hover:text-red-600 w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semimbold transition duration-100">Clear</button>
-        <button type="submit" className="hover:bg-[#1877F2] hover:text-white w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semimbold transition duration-100">Post</button>
+        <button
+          type="submit"
+          disabled={loading}
+          className={`hover:bg-[#1877F2] hover:text-white w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semimbold transition duration-100 ${loading ? ("hover:bg-[#1877F2]/50") : ("")}`}>
+          {loading ? ("Posting...") : ("Post")}
+        </button>
       </div>
     </form >
   )

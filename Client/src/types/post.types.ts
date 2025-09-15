@@ -20,7 +20,7 @@ export interface PostState {
   resetPosts: () => void;
   fetchPosts: () => Promise<void>;
   fetchUserPosts: (userId: number) => Promise<void>;
-  addPost: (post: PostType) => void;
+  createPost: (content: string) => Promise<boolean>;
   deletePost: (postId: number) => Promise<void>;
   toggleLike: (postId: number) => void;
   updatePost: (postId: number, data: Partial<PostType>) => void;

@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../../api/axios";
 import { useAuthStore } from "../../store/autStore";
 import { useCommentStore } from "../../store/commentStore";
 import { usePostStore } from "../../store/postStore";
@@ -11,7 +10,7 @@ const CommentInput = ({ id }: { id: number }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [content, setContent] = useState("");
   const { user } = useAuthStore();
-  const { addComment } = useCommentStore();
+  const { createComment, loadingInput } = useCommentStore();
   const { updatePost, posts } = usePostStore();
 
   const handleInput = () => {
@@ -33,13 +32,15 @@ const CommentInput = ({ id }: { id: number }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await api.post(`/content/post/${id}/comments`, { content });
-      addComment(id, res.data);
-      const currentPost = posts.find((p) => p.id === id);
-      if (currentPost) {
-        updatePost(id, { commentCount: (currentPost.commentCount || 0) + 1 });
+      const success = await createComment(id, content);
+
+      if (success) {
+        const currentPost = posts.find((p) => p.id === id);
+        if (currentPost) {
+          updatePost(id, { commentCount: (currentPost.commentCount || 0) + 1 });
+        }
+        setContent("");
       }
-      setContent("");
     } catch (err) {
       console.error("Failed to post comment", err);
 
@@ -71,6 +72,16 @@ const CommentInput = ({ id }: { id: number }) => {
             value={content}
             onInput={handleInput}
             onChange={handleChange}
+            onKeyDown={(e) => {
+              if (
+                e.key === "Enter" &&
+                !e.shiftKey &&
+                !loadingInput[id]
+              ) {
+                e.preventDefault();
+                handleSubmit(e as unknown as React.FormEvent);
+              }
+            }}
             rows={1}
             placeholder="Write a comment..."
             className="w-full bg-neutral-700/30 rounded-2xl px-3 pr-9 py-2.5 text-white 
@@ -84,9 +95,12 @@ const CommentInput = ({ id }: { id: number }) => {
           )}
           <button
             type="submit"
-            className="absolute right-1 w-8 h-8 flex items-center justify-center 
-     text-neutral-400 rounded-2xl hover:text-[#1877F2] hover:bg-neutral-700/90 
-     transition duration-100 cursor-pointer"
+            disabled={loadingInput[id]}
+            className={`absolute right-1 w-8 h-8 flex items-center justify-center 
+            text-neutral-400 rounded-2xl transition duration-100
+            ${loadingInput[id]
+                ? "opacity-50"
+                : "hover:text-[#1877F2] hover:bg-neutral-700/90 cursor-pointer"}`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

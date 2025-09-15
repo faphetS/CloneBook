@@ -5,6 +5,7 @@ import type { CommentState, CommentType } from "../types/comment.types";
 export const useCommentStore = create<CommentState>((set, get) => ({
   comments: {},
   loading: {},
+  loadingInput: {},
   loadingMore: {},
   offsets: {},
   limits: {},
@@ -80,19 +81,39 @@ export const useCommentStore = create<CommentState>((set, get) => ({
     }
   },
 
-  addComment: (postId: number, comment: CommentType) => {
-    const formatted: CommentType = {
-      ...comment,
-      likeCount: comment.likeCount ?? 0,
-      isLiked: Boolean(comment.isLiked),
-    };
+  createComment: async (postId: number, content: string): Promise<boolean> => {
+    if (!content.trim()) return false;
 
     set((state) => ({
-      comments: {
-        ...state.comments,
-        [postId]: [formatted, ...(state.comments[postId] ?? [])],
-      },
+      loadingInput: { ...state.loadingInput, [postId]: true },
     }));
+
+    try {
+      const res = await api.post(`/content/post/${postId}/comments`, { content });
+      const comment: CommentType = res.data;
+
+      const formatted: CommentType = {
+        ...comment,
+        likeCount: comment.likeCount ?? 0,
+        isLiked: Boolean(comment.isLiked),
+      };
+
+      set((state) => ({
+        comments: {
+          ...state.comments,
+          [postId]: [formatted, ...(state.comments[postId] ?? [])],
+        },
+      }));
+
+      return true;
+    } catch (err) {
+      console.error("Add comment failed", err);
+      return false;
+    } finally {
+      set((state) => ({
+        loadingInput: { ...state.loadingInput, [postId]: false },
+      }));
+    }
   },
 
   deleteComment: async (postId: number, commentId: number) => {

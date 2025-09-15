@@ -59,15 +59,33 @@ export const usePostStore = create<PostState>((set, get) => ({
     }
   },
 
-  addPost: (post) =>
-    set((state) => ({
-      posts: [{
-        ...post,
-        likeCount: post.likeCount ?? 0,
-        isLiked: Boolean(post.isLiked)
-      },
-      ...state.posts],
-    })),
+  createPost: async (content: string) => {
+    if (!content.trim()) return false;
+    set({ loading: true });
+
+    try {
+      const res = await api.post("/content/post", { content });
+      const post = res.data;
+
+      set((state) => ({
+        posts: [
+          {
+            ...post,
+            likeCount: post.likeCount ?? 0,
+            isLiked: Boolean(post.isLiked),
+          },
+          ...state.posts,
+        ],
+      }));
+
+      return true;
+    } catch (err) {
+      console.error("Post failed", err);
+      return false;
+    } finally {
+      set({ loading: false });
+    }
+  },
 
   deletePost: async (postId: number) => {
     try {
