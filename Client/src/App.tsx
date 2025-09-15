@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { Route, Routes } from "react-router-dom"
 import RequireAuth from "./components/routeCheck/RequireAuth"
 import HomePage from "./pages/HomePage"
@@ -5,8 +6,23 @@ import Login from "./pages/Login"
 import ProfilePage from "./pages/ProfilePage"
 import Signup from "./pages/Signup"
 import VerifyEmail from "./pages/VerifyEmail"
+import { useAuthStore } from "./store/autStore"
 
 const App = () => {
+
+  const { refresh, loading } = useAuthStore();
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  if (loading)
+    return (
+      <div className="flex justify-center items-center w-full h-[100vh]">
+        <div className="bg-transparent w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
+      </div>
+    );
+
   return (
     <div className="bg-neutral-800 font-montserrat text-white text-sm min-h-screen">
       <Routes>

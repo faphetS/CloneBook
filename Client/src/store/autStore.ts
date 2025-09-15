@@ -9,6 +9,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       accessToken: null,
+      loading: false,
 
       login: (user: User, accessToken: string) =>
         set({
@@ -49,6 +50,17 @@ export const useAuthStore = create<AuthState>()(
           return { success: false, message };
         }
       },
+
+      refresh: async () => {
+        set({ loading: true });
+        try {
+          const res = await api.post("/auth/refresh-token");
+          set({ user: res.data.user, accessToken: res.data.accessToken, loading: false });
+        } catch (err) {
+          console.error("Refresh failed", err);
+          set({ user: null, accessToken: null, loading: false });
+        }
+      }
 
 
     }),
