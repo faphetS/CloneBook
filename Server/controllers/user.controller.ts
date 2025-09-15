@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { Request, Response } from "express";
-import fs from "fs/promises";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import { RowDataPacket } from "mysql2";
@@ -290,28 +289,23 @@ export const updateProfile = async (req: Request, res: Response) => {
   }
 
   const { username, password } = req.body;
-  const newProfilePic = req.file ? req.file.filename : undefined;
   const fields: string[] = [];
   const values: any[] = [];
 
   try {
     const db = getDB();
-    if (newProfilePic) {
-      const [rows] = await db.execute("SELECT profile_pic AS profilePic FROM users WHERE id = ?", [req.user.userId]);
-      const currentPic = (rows as any)[0]?.profilePic;
 
-      if (currentPic) {
-        const filePath = path.join(__dirname, "../../uploads", currentPic)
-        try {
-          await fs.unlink(filePath);
-        } catch (err) {
-          console.log("Failed to delete old profile pic:", err);
-        }
-      }
+    if (req.file) {
+      const imageBuffer = req.file.buffer;
+      const mimeType = req.file.mimetype;
 
       fields.push("profile_pic = ?");
-      values.push(newProfilePic);
+      values.push(imageBuffer);
+
+      fields.push("profile_pic_type = ?");
+      values.push(mimeType);
     }
+
     if (username) {
       if (username.trim().length < 3) {
         return res.status(400).json({ message: "Username must be at least 3 characters" });
@@ -330,29 +324,45 @@ export const updateProfile = async (req: Request, res: Response) => {
     if (fields.length === 0) {
       return res.status(400).json({ message: "No fields to update" });
     }
+
     const query = `UPDATE users SET ${fields.join(", ")} WHERE id = ?`;
     values.push(req.user.userId);
-
     await db.execute(query, values);
 
+
     const [updatedRows] = await db.execute(
-      "SELECT id, username, profile_pic AS profilePic, created_at FROM users WHERE id = ?",
+      `SELECT 
+        id, 
+        username, 
+        profile_pic AS profilePic, 
+        profile_pic_type AS picType, 
+        created_at 
+      FROM users 
+      WHERE id = ?`,
       [req.user.userId]
     );
+
+
     const updatedUser = (updatedRows as any)[0];
+    let profilePicBase64: string | null = null;
+    if (updatedUser.profilePic) {
+      profilePicBase64 = `data:${updatedUser.picType};base64,${Buffer.from(updatedUser.profilePic).toString('base64')}`;
+    }
 
     res.json({
       message: "Profile updated successfully",
-      user: updatedUser,
+      user: {
+        ...updatedUser,
+        profilePic: profilePicBase64,
+      },
     });
 
 
   } catch (error: any) {
     console.error(error);
-    if (error instanceof multer.MulterError) {
-      if (error.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ message: "Profile picture must be under 1MB" });
-      }
+
+    if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({ message: "Profile picture must be under 1MB" });
     } else if (error instanceof Error && error.message.includes("Only images are allowed")) {
       return res.status(400).json({ message: "Invalid file type. Only images allowed" });
     }
