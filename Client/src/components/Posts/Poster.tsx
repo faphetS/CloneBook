@@ -8,7 +8,7 @@ const MAX_LENGTH = 500;
 const Poster = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { user } = useAuthStore();
-  const { createPost, loading } = usePostStore();
+  const { createPost, posting } = usePostStore();
   const [content, setContent] = useState("");
 
   const handleInput = () => {
@@ -59,17 +59,21 @@ const Poster = () => {
           value={content}
           onInput={handleInput}
           onChange={handleChange}
+          disabled={posting}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
-              if (!loading) {
+              if (!posting) {
                 handleSubmit(e as unknown as React.FormEvent);
               }
             }
           }}
           rows={1}
           placeholder={`What's on your mind, ${user?.username}?`}
-          className="w-full bg-neutral-700/30 rounded-2xl px-3 py-2.5 text-white focus:outline-none focus:ring-1 focus:ring-[#1877F2] placeholder:text-neutral-400 overflow-y-hidden leading-tight resize-none whitespace-pre-wrap break-all"
+          className={`w-full bg-neutral-700/30 rounded-2xl px-3 py-2.5 text-white 
+          focus:outline-none focus:ring-1 focus:ring-[#1877F2] placeholder:text-neutral-400 
+          overflow-y-hidden leading-tight resize-none whitespace-pre-wrap break-all
+          ${posting ? "opacity-70" : ""}`}
         />
         {content.length >= 200 && (
           <span className="absolute bottom-1 right-3 text-xs text-neutral-400">
@@ -81,9 +85,35 @@ const Poster = () => {
         <button onClick={() => setContent("")} className="hover:bg-neutral-700/50 hover:text-red-600 w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semimbold transition duration-100">Clear</button>
         <button
           type="submit"
-          disabled={loading}
-          className={`hover:bg-[#1877F2] hover:text-white w-full py-2 rounded-md cursor-pointer text-neutral-400 font-semimbold transition duration-100 ${loading ? ("hover:bg-[#1877F2]/50") : ("")}`}>
-          {loading ? ("Posting...") : ("Post")}
+          disabled={posting}
+          className={`w-full py-2 rounded-md flex items-center justify-center 
+          text-neutral-400 font-semibold transition duration-100
+          ${posting ? "hover:bg-[#1877F2]/50" : "hover:bg-[#1877F2] hover:text-white"}`}
+        >
+          {posting ? (
+            <svg
+              className="animate-spin w-5 h-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
+            </svg>
+          ) : (
+            "Post"
+          )}
         </button>
       </div>
     </form >

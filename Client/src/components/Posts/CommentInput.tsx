@@ -72,6 +72,7 @@ const CommentInput = ({ id }: { id: number }) => {
             value={content}
             onInput={handleInput}
             onChange={handleChange}
+            disabled={loadingInput[id]}
             onKeyDown={(e) => {
               if (
                 e.key === "Enter" &&
@@ -84,9 +85,10 @@ const CommentInput = ({ id }: { id: number }) => {
             }}
             rows={1}
             placeholder="Write a comment..."
-            className="w-full bg-neutral-700/30 rounded-2xl px-3 pr-9 py-2.5 text-white 
-     focus:outline-none focus:ring-1 focus:ring-[#1877F2] 
-     placeholder:text-neutral-400 overflow-y-hidden leading-tight resize-none"
+            className={`w-full bg-neutral-700/30 rounded-2xl px-3 pr-9 py-2.5 text-white 
+            focus:outline-none focus:ring-1 focus:ring-[#1877F2] 
+            placeholder:text-neutral-400 overflow-y-hidden leading-tight resize-none
+            ${loadingInput[id] ? "opacity-70 cursor-not-allowed" : ""}`}
           />
           {content.length >= 200 && (
             <span className="absolute bottom-1 right-3 text-xs text-neutral-400">
@@ -98,25 +100,47 @@ const CommentInput = ({ id }: { id: number }) => {
             disabled={loadingInput[id]}
             className={`absolute right-1 w-8 h-8 flex items-center justify-center 
             text-neutral-400 rounded-2xl transition duration-100
-            ${loadingInput[id]
-                ? "opacity-50"
-                : "hover:text-[#1877F2] hover:bg-neutral-700/90 cursor-pointer"}`}
+            ${!loadingInput[id] ? "hover:text-[#1877F2] hover:bg-neutral-700/90 cursor-pointer" : ""}`}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-5 h-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
-              />
-            </svg>
+            {loadingInput[id] ? (
+              <svg
+                className="animate-spin w-5 h-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+                />
+              </svg>
+            )}
           </button>
+
         </div>
 
       </div>
