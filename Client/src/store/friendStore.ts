@@ -113,7 +113,7 @@ export const useFriendStore = create<FriendStore>((set, get) => ({
   fetchPendingRequests: async (loadMore = false) => {
     const { pendingPagination, pendingRequests } = get();
     const { offset, limit, hasMore } = pendingPagination;
-    if (!hasMore) return;
+    if (loadMore && !hasMore) return;
 
     set({
       pendingPagination: {

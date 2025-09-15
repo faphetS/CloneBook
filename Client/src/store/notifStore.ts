@@ -33,7 +33,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   fetchNotifs: async (loadMore = false) => {
     const { offset, limit, hasMore } = get();
-    if (!hasMore) return;
+    if (loadMore && !hasMore) return;
 
     if (loadMore) {
       set({ loadingMore: true });
