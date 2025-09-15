@@ -1,11 +1,12 @@
 import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from 'react-router-dom';
 import api from "../api/axios";
 import { useAuthStore } from "../store/autStore";
 
 const Signup = () => {
-  const { logout } = useAuthStore();
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -15,15 +16,11 @@ const Signup = () => {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Auto logout to make things simpler
   useEffect(() => {
-    const autoLogout = async () => {
-      await api.post('/auth/logout');
-      logout();
-    };
-
-    autoLogout();
-  }, [logout]);
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -6,7 +6,7 @@ import { useAuthStore } from '../store/autStore';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, logout } = useAuthStore();
+  const { login, user } = useAuthStore();
 
   const [form, setForm] = useState({
     email: '',
@@ -15,15 +15,12 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Auto logout to make things simpler
-  useEffect(() => {
-    const autoLogout = async () => {
-      await api.post('/auth/logout');
-      logout();
-    };
 
-    autoLogout();
-  }, [logout]);
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +30,6 @@ const Login = () => {
       const res = await api.post('/auth/login', form);
       const { user, accessToken } = res.data;
       login(user, accessToken);
-      navigate('/');
     } catch (err) {
       const error = err as AxiosError<{ message?: string }>;
       setError(error.response?.data?.message || "Login failed");
