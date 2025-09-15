@@ -12,7 +12,7 @@ const Header: React.FC = () => {
         <Link to="/" className="hidden sm:block">
           <div className="font-bold cursor-pointer">CloneBook</div>
         </Link>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-[370px]">
           <SearchInput />
         </div>
       </div>
