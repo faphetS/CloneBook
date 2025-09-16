@@ -5,6 +5,8 @@ let pool: mysql.Pool;
 export const connDB = async (): Promise<mysql.Pool> => {
   try {
     if (!pool) {
+      const isDev = process.env.NODE_ENV !== "production";
+
       pool = mysql.createPool({
         host: process.env.DB_HOST,
         user: process.env.DB_USER,
@@ -14,9 +16,11 @@ export const connDB = async (): Promise<mysql.Pool> => {
         waitForConnections: true,
         connectionLimit: 10,
         queueLimit: 0,
-        ssl: {
-          ca: process.env.DB_CA_CERT?.replace(/\\n/g, "\n"),
-        },
+        ssl: isDev
+          ? { rejectUnauthorized: false }
+          : process.env.DB_CA_CERT
+            ? { ca: process.env.DB_CA_CERT.replace(/\\n/g, "\n") }
+            : undefined,
       });
       console.log("MySQL Connected!");
     }
