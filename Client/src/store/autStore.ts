@@ -1,4 +1,4 @@
-import { AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import api from "../api/axios";
@@ -54,14 +54,16 @@ export const useAuthStore = create<AuthState>()(
       refresh: async () => {
         set({ loading: true });
         try {
-          const res = await api.post("/auth/refresh-token");
-          set({ user: res.data.user, accessToken: res.data.accessToken, loading: false });
+          const res = await axios.post("/api/auth/refresh-token", {}, {
+            withCredentials: true
+          });
+          console.log("accessToken:", res.data.accessToken);
+          set({ accessToken: res.data.accessToken, loading: false });
         } catch (err) {
           console.error("Refresh failed", err);
-          set({ user: null, accessToken: null, loading: false });
+          set({ accessToken: null, loading: false });
         }
-      }
-
+      },
 
     }),
     {
