@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 import { Route, Routes } from "react-router-dom"
 import RequireAuth from "./components/routeCheck/RequireAuth"
 import HomePage from "./pages/HomePage"
@@ -10,11 +9,7 @@ import { useAuthStore } from "./store/autStore"
 
 const App = () => {
 
-  const { refresh, loading } = useAuthStore();
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  const { loading } = useAuthStore();
 
   if (loading)
     return (
