@@ -19,7 +19,7 @@ const HomePage = () => {
   useEffect(() => {
     const handleScroll = async () => {
       if (
-        window.innerHeight + document.documentElement.scrollTop + 1 >= document.documentElement.scrollHeight
+        window.innerHeight + document.documentElement.scrollTop + 50 >= document.documentElement.scrollHeight
       ) {
         if (!loading) {
           await fetchPosts();
