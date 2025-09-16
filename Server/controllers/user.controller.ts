@@ -170,8 +170,8 @@ export const login = async (
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false,   // force off just to test
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -242,13 +242,31 @@ export const refreshToken = async (req: Request, res: Response) => {
     const tokenRecord = rows[0];
     if (!tokenRecord) return res.sendStatus(403);
 
+    const [result] = await db.execute<RowDataPacket[]>("SELECT * FROM users WHERE id = ?", [tokenRecord.fk_u_id]);
+    const user = result[0];
+
     const accessToken = jwt.sign(
       { userId: decoded.userId },
       process.env.ACCESS_TOKEN_SECRET as string,
       { expiresIn: "30m" }
     );
 
-    res.json({ accessToken });
+    let profilePicBase64: string | null = null;
+    if (user.profile_pic) {
+      profilePicBase64 = `data:${user.profile_pic_type};base64,${Buffer.from(user.profile_pic).toString('base64')}`;
+    }
+
+    res.json({
+      accessToken,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        profilePic: profilePicBase64,
+        created_at: user.created_at
+      }
+    });
   } catch (e: unknown) {
     console.error(e);
     const err = e instanceof Error ? e : new Error(String(e));
