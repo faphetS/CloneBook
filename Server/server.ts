@@ -1,7 +1,7 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
-import express, { Application, Request, Response } from "express";
+import express, { Application, ErrorRequestHandler, Request, Response } from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -30,16 +30,18 @@ app.use("/uploads", express.static(uploadsPath));
 
 app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "ok" });
+
 });
 
 app.use("/api", apiRoutes);
 
 
-
-app.use((err: any, req: Request, res: Response, next: Function) => {
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Something went wrong" });
-});
+};
+
+app.use(errorHandler);
 
 const startServer = async () => {
   await connDB();
