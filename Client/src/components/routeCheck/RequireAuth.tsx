@@ -7,28 +7,45 @@ import type { RequireAuthProps } from '../../types/requireAuth.types';
 const RequireAuth = ({ children }: RequireAuthProps) => {
 
   const navigate = useNavigate();
-  const { accessToken, logout } = useAuthStore();
+  const { accessToken, logout, loading } = useAuthStore();
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
 
     const checkAuth = async () => {
       if (!accessToken) {
-        try {
-          await api("/protected/me");
-        } catch {
-          logout();
-          navigate("/login");
-        }
+        setChecking(false);
+        return;
       }
-      setChecking(false);
+
+      try {
+        await api.get("/protected/me");
+        console.log("Token is valid");
+      } catch (err: unknown) {
+        if (err && typeof err === "object" && "response" in err) {
+          const axiosErr = err as { response?: { status?: number } };
+          if (axiosErr.response?.status === 401) {
+            console.log("Token invalid");
+            logout();
+            navigate("/login");
+          } else {
+            console.error("Auth check failed due to server error:", err);
+          }
+        } else {
+          console.error("Unexpected error:", err);
+        }
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    if (!loading) {
+      checkAuth();
     }
-
-    checkAuth();
-  }, [accessToken, logout, navigate]);
+  }, [accessToken, logout, navigate, loading]);
 
 
-  if (checking)
+  if (loading || checking)
     return (
       <div className="flex justify-center items-center w-full h-[100vh]">
         <div className="bg-transparent w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
