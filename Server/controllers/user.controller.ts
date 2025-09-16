@@ -4,15 +4,10 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import multer from "multer";
 import { RowDataPacket } from "mysql2";
-import path from "path";
-import { fileURLToPath } from "url";
 import { getDB } from "../config/db.js";
-import { refreshTokenPayload } from "../types/jwtPayload.types.js";
+import { JwtPayload } from "../types/jwtPayload.types.js";
 import { LoginBody, SignupBody } from "../types/user.types.js";
 import { sendVerificationEmail } from "../utils/mailer.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 
 export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) => {
@@ -175,8 +170,8 @@ export const login = async (
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: false,   // force off just to test
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -237,8 +232,10 @@ export const refreshToken = async (req: Request, res: Response) => {
 
   try {
     const db = getDB();
-    const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET as string) as refreshTokenPayload;
-
+    const decoded = jwt.verify(
+      token,
+      process.env.REFRESH_TOKEN_SECRET as string
+    ) as JwtPayload;
 
     const [rows] = await db.execute<RowDataPacket[]>(query, [decoded.userId, token]);
 
