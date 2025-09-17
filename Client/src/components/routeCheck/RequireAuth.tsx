@@ -30,7 +30,7 @@ const RequireAuth = ({ children }: RequireAuthProps) => {
     }
   }, [accessToken, logout, navigate, refresh, loading]);
 
-  if (loading || checking) {
+  if (checking) {
     return (
       <div className="flex justify-center items-center w-full h-[100vh]">
         <div className="bg-transparent w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
