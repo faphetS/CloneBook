@@ -11,7 +11,6 @@ const RequireAuth = ({ children }: RequireAuthProps) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      setChecking(true);
       try {
         if (!accessToken) {
           await refresh();
