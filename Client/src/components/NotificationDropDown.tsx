@@ -36,6 +36,8 @@ const NotificationDropdown = () => {
     return () => clearInterval(interval);
   }, [resetNotif, fetchUnreadCount]);
 
+
+
   const handleScroll = useCallback(async () => {
     const div = scrollRef.current;
     if (!div || loadingMore || !hasMore) return;
@@ -61,28 +63,17 @@ const NotificationDropdown = () => {
 
   const handleClick = useCallback(async () => {
     await fetchNotifs();
-  }, [fetchNotifs]);
-
-
-  const handleRead = useCallback(
-    async (event: React.FocusEvent<HTMLDivElement>) => {
-      if (!event.currentTarget.contains(event.relatedTarget)) {
-        if (notifications.some((n) => n.unread)) {
-          await markAllAsRead();
-        }
+    setTimeout(() => {
+      if (notifications.some((n) => n.unread)) {
+        markAllAsRead();
       }
-    },
-    [markAllAsRead, notifications]
-  );
-
-
-
+    }, 500);
+  }, [fetchNotifs, notifications, markAllAsRead]);
 
   return (
     <Menu
       as="div"
       className="relative"
-      onBlur={handleRead}
     >
       {({ open }) => (
         <>
