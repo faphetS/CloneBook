@@ -5,19 +5,8 @@ import Login from "./pages/Login"
 import ProfilePage from "./pages/ProfilePage"
 import Signup from "./pages/Signup"
 import VerifyEmail from "./pages/VerifyEmail"
-import { useAuthStore } from "./store/autStore"
 
 const App = () => {
-
-  const { loading } = useAuthStore();
-
-  if (loading)
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700">
-        <div className="bg-transparent w-12 h-12 rounded-full border-[8px] border-gray-400 border-t-white animate-spin"></div>
-      </div>
-    );
-
   return (
     <div className="bg-neutral-800 font-montserrat text-white text-sm min-h-screen">
       <Routes>
