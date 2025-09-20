@@ -34,7 +34,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       const { setTokens, logout } = useAuthStore.getState();
       try {
-        const res = await axios.post("/api/auth/refresh-token", {}, { withCredentials: true });
+        const res = await api.post("/auth/refresh-token", {}, { withCredentials: true });
         const newAccessToken = res.data.accessToken;
 
         setTokens(newAccessToken);
