@@ -40,13 +40,37 @@ const Signup = () => {
     }
   }
 
+  const openInbox = (email: string) => {
+    let inboxUrl = "";
+
+    if (email.endsWith("@gmail.com")) {
+      inboxUrl = "https://mail.google.com/mail/u/0/#inbox";
+    } else if (email.endsWith("@yahoo.com")) {
+      inboxUrl = "https://mail.yahoo.com";
+    } else if (email.endsWith("@outlook.com") || email.endsWith("@hotmail.com")) {
+      inboxUrl = "https://outlook.live.com/mail/inbox";
+    } else {
+      inboxUrl = "https://mail.google.com/mail/u/0/#inbox";
+    }
+
+    window.open(inboxUrl, "_blank");
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700 text-white font-montserrat">
       <div className="bg-neutral-900 w-full max-w-[400px] rounded-xl shadow-lg p-8 space-y-6">
         <h1 className="text-4xl font-bold text-center mb-4">CloneBook</h1>
 
         {successMessage ? (
-          <p className="text-green-400 text-center">{successMessage}</p>
+          <div className="flex flex-col items-center space-y-4">
+            <p className="text-green-400 text-center">{successMessage}</p>
+            <button
+              onClick={() => openInbox(form.email)}
+              className="px-4 py-2 bg-[#1877F2] hover:bg-[#3a8cff] rounded-lg transition"
+            >
+              Open Email
+            </button>
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
             <div>
