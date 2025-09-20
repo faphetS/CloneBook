@@ -3,6 +3,11 @@
 **Clonebook** is a Facebook-inspired social media app built with its core features.  
 It was developed as a personal project to showcase my skills as a **Full Stack Developer**.
 
+
+Visit the [Live Demo](https://clonebooks.vercel.app) to explore Clonebook Directly.
+
+⚠️ **Note:** The deployed app may be slow because the frontend, backend, and database are all running on free-tier services. 
+
 ## **Features**
 
 - **User authentication (JWT-based):** Secure login and registration system using **JSON Web Tokens (JWT)** stored in cookies to manage user sessions.  
@@ -57,17 +62,19 @@ It was developed as a personal project to showcase my skills as a **Full Stack D
 
 - **Nodemailer:** Is a popular Node.js library that simplifies sending emails from a Node.js application.  
 
-## **Usage**
-Visit the [Live Demo](https://clonebooks.vercel.app) to explore Clonebook directly. 
-
-⚠️ **Note:** The deployed app may be slow because the frontend, backend, and database are all running on free-tier services. 
-
-- **Sign up:** Fill out the signup form and verify your email.  
-- **Log in:** Fill out the login form to start using Clonebook.  
-- **Create post:** On the top of the Home Page or Profile Page, there is a designated area to create a post. Fill in the text area and click **Post** or press **Enter**.  
-- **Like posts:** Click the **Like** button on the post you want to like.  
-- **Like comments:** Click the **Like** button on the comment you want to like.  
-- **Commenting:** Click the **Comment** button on a post, fill in the text area, and click **Send** or press **Enter**.  
+## **Usage** 
+- **Sign up:** Fill out the signup form and verify your email.
+  
+- **Log in:** Fill out the login form to start using Clonebook.
+   
+- **Create post:** On the top of the Home Page or Profile Page, there is a designated area to create a post. Fill in the text area and click **Post** or press **Enter**.
+  
+- **Like posts:** Click the **Like** button on the post you want to like.
+  
+- **Like comments:** Click the **Like** button on the comment you want to like.
+  
+- **Commenting:** Click the **Comment** button on a post, fill in the text area, and click **Send** or press **Enter**.
+  
 - **Changing profile:** Click the **Edit** button on the left navbar or in the profile page. Upload a profile photo and click **Save**.  
 
 > The project uses a cloud database, so running it locally requires additional configuration and access.
