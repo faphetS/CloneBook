@@ -86,7 +86,7 @@ export const markAllAsRead = async (req: Request, res: Response) => {
 
   try {
     const db = getDB();
-    db.execute(query, [req.user.userId]);
+    await db.execute(query, [req.user.userId]);
     res.json({ message: "All notifications marked as read" });
 
   } catch (err) {
