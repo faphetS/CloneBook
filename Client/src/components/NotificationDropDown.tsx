@@ -63,12 +63,8 @@ const NotificationDropdown = () => {
 
   const handleClick = useCallback(async () => {
     await fetchNotifs();
-    setTimeout(() => {
-      if (notifications.some((n) => n.unread)) {
-        markAllAsRead();
-      }
-    }, 500);
-  }, [fetchNotifs, notifications, markAllAsRead]);
+    markAllAsRead();
+  }, [fetchNotifs, markAllAsRead]);
 
   return (
     <Menu

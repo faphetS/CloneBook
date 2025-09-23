@@ -61,14 +61,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   markAllAsRead: async () => {
     try {
+
+      set({ unreadCount: 0 });
+
       await api.patch("/notifications/read-all");
-      set((state) => ({
-        notifications: state.notifications.map((n) => ({
-          ...n,
-          unread: false,
-        })),
-        unreadCount: 0,
-      }));
     } catch (error) {
       console.error("Failed to mark all as read", error);
     }
