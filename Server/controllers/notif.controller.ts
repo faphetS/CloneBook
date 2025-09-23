@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { RowDataPacket } from "mysql2";
+import { ResultSetHeader, RowDataPacket } from "mysql2";
 import { getDB } from "../config/db.js";
 
 //helper
@@ -86,7 +86,8 @@ export const markAllAsRead = async (req: Request, res: Response) => {
 
   try {
     const db = getDB();
-    await db.execute(query, [req.user.userId]);
+    const [result] = await db.query<ResultSetHeader>(query, [req.user.userId]);
+    console.log("Mark all read:", { userId: req.user.userId, affected: result.affectedRows });
     res.json({ message: "All notifications marked as read" });
 
   } catch (err) {
