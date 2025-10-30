@@ -30,6 +30,11 @@ api.interceptors.response.use(
     });
     const originalRequest = error.config;
 
+    // Prevent infinite loop for refresh-token endpoint itself
+    if (originalRequest.url.includes("/auth/refresh-token")) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       const { setTokens, logout } = useAuthStore.getState();
